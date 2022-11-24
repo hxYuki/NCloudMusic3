@@ -9,8 +9,85 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Rectangle Width="{Binding ElementName=root, Path=CompactPaneLength}" Grid.Column="0" Visibility="Visible"/>
+        <Border x:Name="AppTitleBar"
+                Grid.Column="1"
+                IsHitTestVisible="True"
+                VerticalAlignment="Top"
+                Height="{Binding ElementName=root, Path=CompactPaneLength}"
+                Canvas.ZIndex="3"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+            <TextBlock x:Name="AppTitle"
+                       Text="{StaticResource AppTitleName}"
+                       VerticalAlignment="Top"
+                       Margin="8,15,0,0"/>
+        </Border>
+
+        <NavigationView x:Name="root" Grid.Column="0" Grid.ColumnSpan="2">
+            <NavigationView.AutoSuggestBox>
+                <AutoSuggestBox QueryIcon="Find" AutomationProperties.Name="Search" PlaceholderText="Search..."/>
+            </NavigationView.AutoSuggestBox>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItemHeader Content="Discovery"/>
+                <NavigationViewItem Icon="Home" Content="Home" Tag="SamplePage4" />
+                <NavigationViewItem Icon="Calendar" Content="Daily" Tag="SamplePage1" />
+                <NavigationViewItem Icon="Scan" Content="FM" Tag="SamplePage2" />
+                <NavigationViewItem Content="Board" Tag="SamplePage3" >
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xea42;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemHeader Content="Mine"/>
+                <NavigationViewItem Content="Cloud Drive">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE753;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Local">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf12b;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Icon="Clock" Content="History" Tag="SamplePage3" />
+
+
+                <NavigationViewItemSeparator/>
+                <NavigationViewItem Content="My Favorite">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe728;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="CreatedLists" Icon="List">
+                    <NavigationViewItem.MenuItems>
+                        <NavigationViewItem Content="xasd" Icon="MusicInfo"/>
+                        <NavigationViewItem Content="xasd" Icon="MusicInfo"/>
+                    </NavigationViewItem.MenuItems>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="LikedLists" Icon="List">
+                    <NavigationViewItem.MenuItems>
+                        <NavigationViewItem Content="xasd" Icon="MusicInfo"/>
+                        <NavigationViewItem Content="xasd" Icon="MusicInfo"/>
+                    </NavigationViewItem.MenuItems>
+                </NavigationViewItem>
+
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Icon="Contact" Content="Login" />
+            </NavigationView.FooterMenuItems>
+            <Frame x:Name="contentFrame"/>
+        </NavigationView>
+    </Grid>
+
+
+
 </Window>

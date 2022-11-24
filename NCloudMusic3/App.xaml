@@ -13,6 +13,11 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
+
+            <x:String x:Key="AppTitleName">NCloudMusic 3</x:String>
+            <SolidColorBrush x:Key="WindowCaptionBackground" Color="Transparent"/>
+            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="Transparent"/>
         </ResourceDictionary>
+
     </Application.Resources>
 </Application>

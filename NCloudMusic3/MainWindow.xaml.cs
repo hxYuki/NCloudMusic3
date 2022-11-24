@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -29,11 +30,13 @@ namespace NCloudMusic3
         public MainWindow()
         {
             this.InitializeComponent();
+
+
+            this.ExtendsContentIntoTitleBar = true;  // enable custom titlebar
+            this.SetTitleBar(AppTitleBar);      // set user ui element as titlebar
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
-        {
-            myButton.Content = "Clicked";
-        }
+        
+        
     }
 }
