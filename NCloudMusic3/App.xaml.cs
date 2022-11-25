@@ -50,5 +50,8 @@ namespace NCloudMusic3
         }
 
         private Window m_window;
+
+        public string Test { get; set; } = "aaaa";
+
     }
 }
