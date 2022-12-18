@@ -21,6 +21,10 @@ using Windows.Foundation.Collections;
 
 using System.Threading.Tasks;
 using WinRT;
+using NCloudMusic3.Models;
+using System.Collections.ObjectModel;
+using NCloudMusic3.Pages;
+using NCloudMusic3.ViewModels;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -31,19 +35,27 @@ namespace NCloudMusic3
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        internal UserProfile UserProfile => App.Instance.User;
+        internal ulong LikeListId => App.Instance.LikeListId;
+
+        public ObservableCollection<MusicList> CreatedList => App.Instance.AlbumList;
+        public ObservableCollection<MusicList> LikedList => App.Instance.SubscribeAlbumList;
 
         public MainWindow()
         {
             this.InitializeComponent();
 
-            this.ExtendsContentIntoTitleBar = true;  // enable custom titlebar
-            this.SetTitleBar(AppTitleBar);      // set user ui element as titlebar
+            //this.ExtendsContentIntoTitleBar = true;  // enable custom titlebar
+            //this.SetTitleBar(AppTitleBar);      // set user ui element as titlebar
 
-            contentFrame.Navigate(typeof(Pages.HomePage));
+            ////contentFrame.Navigate(typeof(Pages.HomePage));
+            //root.SelectedItem = Home;
 
             SubClassing();
-        }
 
+            root.Navigate(typeof(MainPage), this);
+        }
+        
 
         #region SHIT
         private delegate IntPtr WinProc(IntPtr hWnd, PInvoke.User32.WindowMessage Msg, IntPtr wParam, IntPtr lParam);
