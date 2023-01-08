@@ -9,6 +9,7 @@ namespace NCloudMusic3.Models
     public class Music
     {
         public ulong Id {  get; set; }
+        public int Num { get; set; }
         public string Title {  get; set; }
         public string[] Translation {  get; set; }
         public Artist[] Artists { get; set; }
@@ -24,6 +25,7 @@ namespace NCloudMusic3.Models
             CloudOnly = 1, InfoOnly=2, Normal = 0
         }
     }
+    
     public class Album
     {
         public ulong Id { get; set; }

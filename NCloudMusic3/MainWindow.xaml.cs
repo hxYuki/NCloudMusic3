@@ -35,11 +35,11 @@ namespace NCloudMusic3
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        internal UserProfile UserProfile => App.Instance.User;
-        internal ulong LikeListId => App.Instance.LikeListId;
+        //internal UserProfile UserProfile => App.Instance.User;
+        //internal ulong LikeListId => App.Instance.LikeListId;
 
-        public ObservableCollection<MusicList> CreatedList => App.Instance.AlbumList;
-        public ObservableCollection<MusicList> LikedList => App.Instance.SubscribeAlbumList;
+        //public ObservableCollection<MusicList> CreatedList => App.Instance.AlbumList;
+        //public ObservableCollection<MusicList> LikedList => App.Instance.SubscribeAlbumList;
 
         public MainWindow()
         {
@@ -55,7 +55,7 @@ namespace NCloudMusic3
 
             root.Navigate(typeof(MainPage), this);
         }
-        
+
 
         #region SHIT
         private delegate IntPtr WinProc(IntPtr hWnd, PInvoke.User32.WindowMessage Msg, IntPtr wParam, IntPtr lParam);
