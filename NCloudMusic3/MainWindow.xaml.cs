@@ -25,6 +25,8 @@ using NCloudMusic3.Models;
 using System.Collections.ObjectModel;
 using NCloudMusic3.Pages;
 using NCloudMusic3.ViewModels;
+using WinRT.Interop;
+using Microsoft.UI.Windowing;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -40,6 +42,7 @@ namespace NCloudMusic3
 
         //public ObservableCollection<MusicList> CreatedList => App.Instance.AlbumList;
         //public ObservableCollection<MusicList> LikedList => App.Instance.SubscribeAlbumList;
+        internal AppWindow appWindow;
 
         public MainWindow()
         {
@@ -54,10 +57,22 @@ namespace NCloudMusic3
             SubClassing();
 
             root.Navigate(typeof(MainPage), this);
+            
+            ExtendsContentIntoTitleBar = true;
+
+            appWindow = GetAppWindowForCurrentWindow();
         }
 
 
         #region SHIT
+        private AppWindow GetAppWindowForCurrentWindow()
+        {
+            IntPtr hWnd = WindowNative.GetWindowHandle(this);
+            WindowId myWndId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            return AppWindow.GetFromWindowId(myWndId);
+        }
+
+
         private delegate IntPtr WinProc(IntPtr hWnd, PInvoke.User32.WindowMessage Msg, IntPtr wParam, IntPtr lParam);
         private WinProc newWndProc = null;
         private IntPtr oldWndProc = IntPtr.Zero;

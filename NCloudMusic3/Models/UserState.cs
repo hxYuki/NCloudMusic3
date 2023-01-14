@@ -1,4 +1,5 @@
-﻿using NCloudMusic3.Models;
+﻿using NCloudMusic3.Helpers;
+using NCloudMusic3.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,20 +17,42 @@ namespace NCloudMusic3.Models
 
         protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
         {
-            if(this.PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
-    public class User
+    public class User : CacheHolder<ulong, User>
     {
-        public ulong UserId { get; set; }
+        //static Dictionary<ulong, User> g = new();
+        public ulong UserId { get=>key; set=>key=value; }
         public string Nickname { get; set; } = "";
         public string AvatarUrl { get; set; } = "";
         public string BackgroudUrl { get; set; } = "";
         public string Signature { get; set; } = "";
         public DateTime CreateTime { get; set; }
         public bool IsLoginUser { get; set; } = false;
+
+
+        //public static User Create(ulong uid)
+        //{
+        //    if (!g.ContainsKey(uid))
+        //    {
+        //        g[uid] = new User() { UserId = uid };
+        //    }
+        //    return g[uid];
+
+        //    //return new User() { Id = id, Name = name, PictureUrl = pictureUrl };
+        //}
+        //public static User UpdateOrCreate(ulong id, Action<User> updater)
+        //{
+        //    if (!g.ContainsKey(id))
+        //    {
+        //        var t = new User() { UserId = id };
+        //        g[id] = t;
+        //    }
+        //    updater(g[id]);
+        //    return g[id];
+        //}
     }
 }
 

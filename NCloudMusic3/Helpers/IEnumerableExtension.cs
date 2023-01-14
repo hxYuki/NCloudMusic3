@@ -12,14 +12,31 @@ namespace NCloudMusic3.Helpers
         public static IEnumerable<T> GetShuffled<T>(this IEnumerable<T> source)
         {
             var ls = source.ToArray();
-
-            foreach(var i in 0..ls.Length)
+            int n = ls.Length;
+            while (n > 0)
             {
-                var swp = Random.Next(0, ls.Length);
+                n--;
+                int k = Random.Next(n);
 
-                (ls[i], ls[swp]) = (ls[swp], ls[i]);
+                (ls[n], ls[k]) = (ls[k], ls[n]);
             }
             return ls;
         }
+
+        public static int RollingNextIndex<T>(this IEnumerable<T> source, int i) {
+            if (i + 1 < source.Count())
+            {
+                return i + 1;
+            }
+            else return 0;
+        }
+        public static int RollingPreviousIndex<T>(this IEnumerable<T> source, int i) {
+            if (i > 0)
+            {
+                return i - 1;
+            }
+            else return source.Count() - 1;
+        }
+
     }
 }

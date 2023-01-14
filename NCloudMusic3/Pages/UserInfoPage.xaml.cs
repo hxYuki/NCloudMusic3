@@ -30,7 +30,7 @@ namespace NCloudMusic3.Pages
     /// </summary>
     public sealed partial class UserInfoPage : Page
     {
-        internal UserProfile UserProfile => App.Instance.User;
+        internal UserProfile UserProfile => App.Instance.UserProf;
 
         public UserInfoPage()
         {

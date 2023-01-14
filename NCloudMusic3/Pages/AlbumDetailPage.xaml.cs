@@ -19,6 +19,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinRT;
+using NCloudMusic3.ViewModels;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -67,28 +68,28 @@ namespace NCloudMusic3.Pages
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class AlbumDetailPage : Page
+    public sealed partial class PlayListDetailPage : Page
     {
-        public MusicList AlbumData { get; set; } = new();
-        RangeObservableCollection<Music> AlbumMusicDetail { get; set; } = new();
-        RangeObservableCollection<ulong> AlbumMusicId { get; set; } = new();
+        public MusicListVM MusicListInfo { get; set; } = new();
+        RangeObservableCollection<Music> ListMusicDetail { get; set; } = new();
+        RangeObservableCollection<ulong> ListMusicId { get; set; } = new();
 
         MiscData MiscData { get; set; } = new();
 
-        public AlbumDetailPage()
+        public PlayListDetailPage()
         {
             this.InitializeComponent();
 
-            MiscData.ExtendButtonText = Resources["expendButtonText"].ToString();
+            
 
-            AlbumMusicId.CollectionChanged += async (e, s) =>
+            ListMusicId.CollectionChanged += async (e, s) =>
             {
-                var ls = await App.Instance.GetOrRequestNewMusic(AlbumMusicId);
-                AlbumMusicDetail.Clear();
-                foreach(var i in 0..ls.Count)
+                var ls = await App.Instance.GetOrRequestNewMusic(ListMusicId);
+                ListMusicDetail.Clear();
+                foreach (var i in 0..ls.Count)
                 {
-                    ls[i].Num = i+1;
-                    AlbumMusicDetail.Add(ls[i]);
+                    ls[i].Num = i + 1;
+                    ListMusicDetail.Add(ls[i]);
                 }
             };
         }
@@ -98,33 +99,39 @@ namespace NCloudMusic3.Pages
             base.OnNavigatedTo(e);
 
 
-
-            if (e.Parameter is ulong aid)
+            if (e.Parameter is ulong pid)
             {
-                AlbumData.Update(App.AlbumListCache[aid]);
+                // TODO 此缓存作用似乎不大
+                App.Instance.GetPlaylistInfo(pid);
+                MusicListInfo.SetModel(App.PlaylistCache[pid]);
 
-                SetMusicList(aid);
+                SetMusicList(pid);
+            }
+            else if (e.Parameter is AlbumNavigator { Id: ulong albumId })
+            {
+                // TODO 
+                var (info, list) = await App.Instance.GetAlbumInfo(albumId);
             }
         }
 
         private async void SetMusicList(ulong aid)
         {
-            var ls = await App.Instance.GetMusicList(aid, (ls) => ReplaceMusicList(aid, ls), DispatcherQueue);
+            var ls = await App.Instance.GetMusicList(aid, ls => ReplaceMusicList(aid, ls), DispatcherQueue);
             ReplaceMusicList(aid, ls);
             async void ReplaceMusicList(ulong aid, List<ulong> ls)
             {
-                await App.Instance.PrepareMusic(ls);
-
                 // ObservableCollection 似乎行为与 Set 一致。
-                if (AlbumMusicId.SequenceEqual(ls))
+                if (ListMusicId.SequenceEqual(ls))
                 {
                     return;
                 }
 
-                AlbumMusicId.Clear();
-                AlbumMusicId.AddRange(ls);
+                await App.Instance.PrepareMusic(ls);
 
-                if (aid == App.Instance.User.LikeListId)
+                ListMusicId.Clear();
+                ListMusicId.AddRange(ls);
+
+                if (aid == App.Instance.UserProf.LikeListId)
                 {
                     //AlbumMusicId.AddRange(App.Instance.LikeSongList);
                     App.Instance.LikeSongList.Clear();
@@ -133,33 +140,15 @@ namespace NCloudMusic3.Pages
             }
         }
 
-        private void descriptionBlock_SizeChanged(object sender, SizeChangedEventArgs e)
+        
+
+        
+
+        private void ListView_LayoutUpdated(object sender, object e)
         {
-            MiscData.ShowToggleButton = descriptionBlock.ActualHeight > 50;
+
         }
 
-        private void toggleExtendButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (MiscData.BlockHeight.IsAuto)
-            {
-                MiscData.BlockHeight = new GridLength(41);
-                MiscData.ExtendButtonText = Resources["expendButtonText"].ToString();
-            }
-            else
-            {
-                MiscData.BlockHeight = GridLength.Auto;
-                MiscData.ExtendButtonText = Resources["collapseButtonText"].ToString();
-
-            }
-        }
-
-        private void MusicTapped(object sender, TappedRoutedEventArgs e)
-        {
-            var music = App.SongCache[sender.As<ListViewItem>().Tag.As<ulong>()];
-
-            App.Instance.SetPlayList(AlbumMusicDetail);
-            App.Instance.PlayMusic(music);
-        }
 
         
     }
@@ -170,10 +159,11 @@ namespace NCloudMusic3.Pages
         public static string SecondsToString(double milliseconds)
         {
             var ts = TimeSpan.FromMilliseconds(milliseconds);
-            if(ts.TotalHours>1)
+            if (ts.TotalHours > 1)
                 return ts.ToString("g");
             else return ts.ToString(@"mm\:ss");
         }
         public static bool Reverse(bool boolean) => !boolean;
+
     }
 }

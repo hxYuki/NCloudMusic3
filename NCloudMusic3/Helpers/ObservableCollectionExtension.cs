@@ -26,23 +26,25 @@ namespace NCloudMusic3.Helpers
             }
         }
 
-        public IDisposable BatchUpdate()
+        public IDisposable BatchUpdate(NotifyCollectionChangedAction updateAction = NotifyCollectionChangedAction.Reset)
         {
             _suppressNotification = true;
-            return new UpdateToken(this);
+            return new UpdateToken(this, updateAction);
         }
 
         private class UpdateToken : IDisposable
         {
             private RangeObservableCollection<T> oc;
-            public UpdateToken(RangeObservableCollection<T> cl)
+            private NotifyCollectionChangedAction actionType;
+            public UpdateToken(RangeObservableCollection<T> collection, NotifyCollectionChangedAction actionType = NotifyCollectionChangedAction.Reset)
             {
-                oc = cl ?? throw new ArgumentNullException(nameof(cl));
+                oc = collection ?? throw new ArgumentNullException(nameof(collection));
+                this.actionType = actionType;
             }
             public void Dispose()
             {
                 oc._suppressNotification = false;
-                oc.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                oc.OnCollectionChanged(new NotifyCollectionChangedEventArgs(actionType));
             }
         }
     }

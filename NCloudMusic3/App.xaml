@@ -11,6 +11,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <ResourceDictionary Source="Resources/ListViewStyle.xaml"/>
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
@@ -20,6 +21,16 @@
             <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="Transparent"/>
 
             <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+
+
+
+            <SolidColorBrush x:Key="CaptionTextColor" Color="#b2b2b2"/>
+            <SolidColorBrush x:Key="DimCaptionTextColor" Color="#8b8b8b"/>
+            <Style x:Key="CaptionTextButton" TargetType="HyperlinkButton">
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Foreground" Value="{ThemeResource CaptionTextColor}"/>
+            </Style>
         </ResourceDictionary>
 
     </Application.Resources>

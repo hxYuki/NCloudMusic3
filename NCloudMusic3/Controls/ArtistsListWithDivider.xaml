@@ -1,0 +1,47 @@
+<!-- Copyright (c) Microsoft Corporation and Contributors. -->
+<!-- Licensed under the MIT License. -->
+
+<UserControl
+    x:Class="NCloudMusic3.Controls.ArtistsListWithDivider"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NCloudMusic3.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:NCloudMusic3.Models"
+    mc:Ignorable="d"
+    x:Name="root"
+    >
+    
+    <StackPanel x:Name="rs" Orientation="Horizontal">
+        <HyperlinkButton Foreground="{Binding ElementName=root, Path=Foreground}"
+                         FontSize="{Binding ElementName=root, Path=FontSize}"
+                         x:Name="button" Padding="0"
+                         Tapped="button_Tapped"/>
+        <ItemsRepeater x:Name="artistsList">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal"/>
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="models:Artist">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="txt"
+                                   Text="/" VerticalAlignment="Center" Margin="3,0">
+                        </TextBlock>
+                        <HyperlinkButton Foreground="{Binding ElementName=txt, Path=Foreground}"
+                                         FontSize="{Binding ElementName=txt, Path=FontSize}"
+                                         Content="{x:Bind Name}" Padding="0" Tag="{x:Bind Id}"
+                                         Tapped="button_Tapped">
+                        </HyperlinkButton>
+                            
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+
+        <!--<ItemsRepeater x:Name="items">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal"/>
+            </ItemsRepeater.Layout>
+        </ItemsRepeater>-->
+    </StackPanel>
+</UserControl>

@@ -8,6 +8,7 @@
     xmlns:local="using:NCloudMusic3.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:model="using:NCloudMusic3.Models"
+    xmlns:vc="using:NCloudMusic3.ValueConverter" xmlns:controls="using:NCloudMusic3.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -20,6 +21,8 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </DataTemplate>
+
+            <vc:MillisecondsToFormatedStringConverter x:Key="MillisecToFString" />
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -45,8 +48,10 @@
         </Border>
 
         <NavigationView x:Name="root" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="1"
+                        IsBackEnabled="{Binding ElementName=contentFrame,Path=CanGoBack}"
                         SelectionChanged="root_SelectionChanged"
-                        ItemInvoked="root_ItemInvoked">
+                        ItemInvoked="root_ItemInvoked"
+                        BackRequested="root_BackRequested">
             <NavigationView.AutoSuggestBox>
                 <AutoSuggestBox QueryIcon="Find" AutomationProperties.Name="Search" PlaceholderText="Search..."/>
             </NavigationView.AutoSuggestBox>
@@ -130,7 +135,7 @@
             </Grid>
         </NavigationView>
 
-        <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Height="100">
+        <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Height="100" DataContext="{x:Bind Playing}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
@@ -141,70 +146,165 @@
                 <RowDefinition Height="5"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <Image Width="100" Source="Assets/Square44x44Logo.scale-200.png"/>
-                <StackPanel>
-                    <TextBlock Text="Name" Style="{ThemeResource TitleTextBlockStyle}"/>
-                    <TextBlock Text="Artist" Style="{ThemeResource CaptionTextBlockStyle}"/>
-                    <TextBlock Text="Album" Style="{ThemeResource CaptionTextBlockStyle}"/>
+            <StackPanel Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Image Width="100" Height="100" Source="{Binding CurrentPlay.Album.PictureUrl, FallbackValue='/Assets/SplashScreen.scale-200.png'}"/>
+                <StackPanel Margin="5,0,0,0">
+                    <TextBlock IsTextSelectionEnabled="True" Text="{Binding CurrentPlay.Title, FallbackValue=''}" Style="{ThemeResource TitleTextBlockStyle}"/>
+                    <!--<TextBlock Text="{Binding CurrentPlay.Artists[0].Name, FallbackValue='无歌曲'}" Style="{ThemeResource CaptionTextBlockStyle}"/>-->
+                    <controls:ArtistsListWithDivider Artists="{Binding CurrentPlay.Artists}" FontSize="12" Foreground="White"/>
+                    <HyperlinkButton Content="{Binding CurrentPlay.Album.Name, FallbackValue=''}" Foreground="White" Style="{ThemeResource CaptionTextButton}"/>
                 </StackPanel>
 
             </StackPanel>
 
-            <RelativePanel Grid.Column="1" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="10" RelativePanel.AlignLeftWithPanel="True">
-                    <Button Height="44" Width="44" CornerRadius="22" Tag="Prev">
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe892;"/>
-                    </Button>
-                    <Button Height="44" Width="44" CornerRadius="22" Tag="TogglePlay">
+            <Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="1">
+                <!--TODO: 添加鼠标悬浮出现控制按钮的功能，移开显示歌词。-->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    <Button Height="42" Width="42" CornerRadius="18" Tag="ToggleShuffled"
+                            Tapped="ToggleShuffledButton"
+                            Background="Transparent" BorderThickness="0">
                         <Grid>
-                            <!--��ѡһ��ʾ-->
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe768;"/>
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe769;"/>
+                            <!--按钮斜线-->
+                            <FontIcon FontSize="18" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8b1;"/>
+                            <FontIcon Visibility="{Binding NotShuffled}" Height="10" Width="10" FontSize="10" FontWeight="Bold" Foreground="#000000"
+                                      RenderTransformOrigin="0.5,0.5" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf464;">
+                                <FontIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1" ScaleY="2.5"/>
+                                        <RotateTransform Angle="-45"/>
+                                    </TransformGroup>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                            <FontIcon Visibility="{Binding NotShuffled}" Height="10" Width="10" FontSize="10" FontWeight="Bold"
+                                      RenderTransformOrigin="0.5,0.5" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf464;">
+                                <FontIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1" ScaleY="2.8"/>
+                                        <RotateTransform Angle="135"/>
+                                    </TransformGroup>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
                         </Grid>
                     </Button>
-                    <Button Height="44" Width="44" CornerRadius="22" Tag="Next">
-                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe893;"/>
+                    <Button Height="42" Width="42" CornerRadius="18" Tag="Prev"
+                            Tapped="PreviousMusicButton"
+                            Background="Transparent" BorderThickness="0">
+                        <FontIcon FontSize="18" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe892;"/>
+                    </Button>
+                    <Button Height="54" Width="54" CornerRadius="27" Tag="TogglePlay"
+                            Tapped="TogglePlayButton">
+                        <Grid>
+                            <!--二选一显示-->
+                            <FontIcon FontSize="26" Visibility="{Binding IsPaused}" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf5b0;"
+                                      Translation="2,0,0"/>
+                            <FontIcon FontSize="26" Visibility="{Binding IsPlaying}" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe769;"/>
+                        </Grid>
+                    </Button>
+                    <Button Height="42" Width="42" CornerRadius="18" Tag="Next"
+                            Tapped="NextMusicButton"
+                            Background="Transparent" BorderThickness="0">
+                        <FontIcon FontSize="18" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe893;"/>
+                    </Button>
+
+                    <Button Height="42" Width="42" CornerRadius="18" Tag="ToggleLoop" Tapped="ToggleLoopButton"
+                            Background="Transparent" BorderThickness="0">
+                        <!--<FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8b1;"/>-->
+                        <!--<FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ed;"/>-->
+                        <!--<Grid>
+                        <FontIcon  FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8c4;"/>
+                        <FontIcon Scale="0.6,0.6,1" Translation="12,8,0" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ee;"/>
+                    </Grid>-->
+                        <Grid>
+                            <FontIcon FontSize="18" Visibility="{Binding IsLooping}" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ee;"/>
+                            <FontIcon FontSize="18" Visibility="{Binding NotLooping}" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf5e7;"/>
+                        </Grid>
                     </Button>
                 </StackPanel>
+            </Grid>
+            <RelativePanel Grid.Column="1" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="10" RelativePanel.AlignRightWithPanel="True">
                     <Button Height="44" Width="44" CornerRadius="22" Tag="ToggleLike">
                         <Grid>
-                            <!--��ѡһ��ʾ-->
-                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xEB52;" Foreground="#C72335" />
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xEB51;"/>
+                            <!--二选一显示-->
+                            <FontIcon Visibility="{Binding IsLiked}" FontFamily="Segoe Fluent Icons" Glyph="&#xEB52;" Foreground="#C72335"/>
+                            <FontIcon Visibility="{Binding NotLiked}" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xEB51;"/>
                         </Grid>
                     </Button>
                     <Button Height="44" Width="44" CornerRadius="22" Tag="Comment">
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe90a;"/>
                     </Button>
+                    <TextBlock x:Name="operating"/>
                 </StackPanel>
             </RelativePanel>
-            <ProgressBar Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Value="50"/>
+            <!--进度条-->
+            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Margin="0,-25,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{x:Bind local:H.SecondsToString(Playing.Position), Mode=OneWay}"
+                           Width="60" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{x:Bind local:H.SecondsToString(Playing.Duration), Mode=OneWay}"
+                           Width="60" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
 
-            <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Spacing="10" Orientation="Horizontal" FlowDirection="RightToLeft">
-                <Button Height="44" Width="44" CornerRadius="22" Tag="Expand">
-                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe70e;"/>
-                </Button>
-                <Button Height="44" Width="44" CornerRadius="22" Tag="PlayMode">
-                    <!--<FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8b1;"/>-->
-                    <!--<FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ed;"/>-->
-                    <!--<Grid>
-                        <FontIcon  FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8c4;"/>
-                        <FontIcon Scale="0.6,0.6,1" Translation="12,8,0" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ee;"/>
-                    </Grid>-->
-                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe8ee;"/>
-                </Button>
-                <Button Height="44" Width="44" CornerRadius="22" Tag="PlayList">
-                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe90b;"/>
+                <Slider  Grid.Column="1" Name="slider"
+                         Maximum="{Binding Duration}" Minimum="0"
+                        ThumbToolTipValueConverter="{StaticResource MillisecToFString}"
+                        ManipulationMode="TranslateX" 
+                        ManipulationStarting="slider_ManipulationStarting"
+                        ManipulationStarted="slider_ManipulationStarted"
+                        ManipulationCompleted="slider_ManipulationCompleted"
+                        ManipulationDelta="slider_ManipulationDelta"/>
+
+            </Grid>
+
+            <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Right">
+
+                <Button Height="44" Width="44" CornerRadius="22" Tag="Caption">
+                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf15f;"/>
                 </Button>
                 <Button Height="44" Width="44" CornerRadius="22" Tag="Volume">
                     <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe995;"/>
                 </Button>
-                <Button Height="44" Width="44" CornerRadius="22" Tag="Caption">
-                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf15f;"/>
+                <Button Height="44" Width="44" CornerRadius="22" Tag="PlayList">
+                    <Button.Flyout>
+                        <Flyout Placement="Top" >
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                    <TextBlock Text="当前播放列表" HorizontalTextAlignment="Center"/>
+                                </StackPanel>
+                                <ListView x:Name="currentPlayList"
+                                      
+                                          Width="400"
+                                          MaxHeight="400"
+                                          Loaded="currentPlayList_Loaded"
+                                      
+                                          ScrollViewer.IsDeferredScrollingEnabled="True"
+                                          ItemContainerStyle="{ThemeResource DefaultListViewItemStyle}"
+                                          ShowsScrollingPlaceholders="True">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="model:Music">
+                                            <ListViewItem Tag="{Binding Id}" Tapped="ListViewItem_Tapped">
+                                                <TextBlock Text="{Binding Title}"/>
+                                            </ListViewItem>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+
+                        </Flyout>
+                    </Button.Flyout>
+                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe90b;"/>
+                </Button>
+                <Button Height="44" Width="44" CornerRadius="22" Tag="Expand">
+                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe70e;"/>
                 </Button>
             </StackPanel>
         </Grid>
+        <TeachingTip x:Name="rootTips"
+                     PreferredPlacement="RightTop"
+	                 PlacementMargin="20"
+	                 IsLightDismissEnabled="False"/>
     </Grid>
 </Page>

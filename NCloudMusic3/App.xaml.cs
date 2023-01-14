@@ -30,11 +30,136 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Windows.Storage;
 using NCloudMusic3.ViewModels;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.ApplicationModel.VoiceCommands;
+using Windows.UI.Core;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Windowing;
+using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace NCloudMusic3
 {
+    public class PlayingInfomation : NotifyPropertyChanged
+    {
+        private RangeObservableCollection<Music> playList = new();
+        private int playingIndex;
+        private Music currentPlay;
+        private bool isPlaying = false;
+        private bool isShuffled;
+        private bool isLooping;
+        private bool isLiked;
+        private double duration;
+        private double position;
+        private bool stopAfterThisPiece;
+
+        public RangeObservableCollection<Music> PlayList
+        {
+            get => playList; set
+            {
+                playList = value; RaisePropertyChanged();
+            }
+        }
+
+        public int PlayingIndex
+        {
+            get => playingIndex; set
+            {
+                playingIndex = value; RaisePropertyChanged();
+            }
+        }
+        public Music CurrentPlay
+        {
+            get => currentPlay; set
+            {
+                currentPlay = value; RaisePropertyChanged();
+            }
+        }
+        public bool IsPlaying
+        {
+            get => isPlaying; set
+            {
+                isPlaying = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsPaused));
+            }
+        }
+        public bool IsPaused
+        {
+            get => !isPlaying; set
+            {
+                isPlaying = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsPlaying));
+            }
+        }
+        public bool IsShuffled
+        {
+            get => isShuffled; set
+            {
+                isShuffled = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotShuffled));
+            }
+        }
+        public bool NotShuffled
+        {
+            get => !isShuffled; set
+            {
+                isShuffled = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsShuffled));
+            }
+        }
+        public bool IsLooping
+        {
+            get => isLooping; set
+            {
+                isLooping = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotLooping));
+            }
+        }
+        public bool NotLooping
+        {
+            get => !isLooping; set
+            {
+                isLooping = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsLooping));
+            }
+        }
+        public bool IsLiked
+        {
+            get => isLiked; set
+            {
+                isLiked = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotLiked));
+            }
+        }
+        public bool NotLiked
+        {
+            get => !isLiked; set
+            {
+                isLiked = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsLiked));
+            }
+        }
+
+        public bool StopAfterThisPiece
+        {
+            get => stopAfterThisPiece; set
+            {
+                stopAfterThisPiece = value; RaisePropertyChanged();
+            }
+        }
+
+        public double Duration
+        {
+            get => duration; set
+            {
+                duration = value;
+                RaisePropertyChanged();
+            }
+        }
+        public double Position
+        {
+            get => position; set
+            {
+                position = value;
+                RaisePropertyChanged();
+            }
+        }
+    }
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
@@ -44,6 +169,7 @@ namespace NCloudMusic3
         public StorageFolder LocalCacheFolder = ApplicationData.Current.LocalCacheFolder;
 
         const string MusicCacheFile = "music.cache";
+        //const string AlbumCacheFile = "album.cache";
 
         public CloudMusicApi api;
 
@@ -77,6 +203,9 @@ namespace NCloudMusic3
         {
             m_window = new MainWindow();
             m_window.Activate();
+            m_window.appWindow.Closing += AppWindow_Closing;
+
+
 
             Login = new();
 
@@ -96,44 +225,286 @@ namespace NCloudMusic3
 
             GetUserinfo();
 
-            var cachefile = await LocalCacheFolder.TryGetItemAsync(MusicCacheFile);
-            if(cachefile is not null)
+            await LoadCache();
+
+            LoadPlayingStatus();
+            LikeSongList.CollectionChanged += async (s, e) =>
             {
-                var txt = File.ReadAllText(cachefile.Path);
+                await PrepareMusic(s as IEnumerable<ulong>);
+            };
 
-                SongListCache = JsonSerializer.Deserialize<ConcurrentDictionary<ulong, Music>>(txt);
-            }
 
-            LikeSongList.CollectionChanged += UpdateLikeSoneList;
         }
 
-        
-
-        private void UpdateLikeSoneList(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
-            FetchMusic(sender as IEnumerable<ulong>);
+            args.Cancel = true;
+            await SavePlayingStatus();
+
+            m_window.Close();
         }
 
-        internal Window m_window;
+        public async Task SavePlayingStatus()
+        {
+            var d = new JsonObject
+            {
+                ["playlist"] = new JsonArray(Playing.PlayList.Select(x => JsonValue.Create(x.Id)).ToArray()),
+                ["playingIndex"] = Playing.PlayingIndex,
+                ["random"] = Playing.IsShuffled,
+                ["loop"] = Playing.IsLooping,
+                ["isLiked"] = Playing.IsLiked
+            };
+
+            var f = await LocalCacheFolder.CreateFileAsync("playing.cache", CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteTextAsync(f, d.ToString());
+        }
+        public async void LoadPlayingStatus()
+        {
+            var f = await LocalCacheFolder.TryGetItemAsync("playing.cache");
+            if (f == null)
+                return;
+
+            JsonNode jd;
+            try
+            {
+                var d = await File.ReadAllTextAsync(f.Path);
+                jd = JsonObject.Parse(d);
+            }
+            catch
+            {
+                return;
+            }
+            Playing.With(e =>
+            {
+                e.PlayList.Clear();
+                e.PlayList.AddRange(jd["playlist"].Deserialize<List<ulong>>().Select(id => Music.Get(id)).ToList());
+                e.PlayingIndex = jd["playingIndex"].GetValue<int>();
+                e.IsShuffled = jd["random"].GetValue<bool>();
+                e.IsLooping = jd["loop"].GetValue<bool>();
+                e.IsLiked = jd["isLiked"].GetValue<bool>();
+                e.CurrentPlay = e.PlayList[e.PlayingIndex];
+
+                SetPlayerSource(e.CurrentPlay);
+            });
+        }
+        public async Task SaveCache()
+        {
+            await Music.SaveCache(LocalCacheFolder);
+        }
+        public async Task LoadCache()
+        {
+            await Music.LoadCache(LocalCacheFolder);
+        }
+
+        internal MainWindow m_window;
         private static App instance;
 
         public bool LoginState = false;
 
         public LoginDialog Login;
 
-        internal UserProfile User { get; private set; } = new();
+        internal UserProfile UserProf { get; private set; } = new();
 
         // 全局歌曲缓存，歌曲id - 歌曲对象
-        public static ConcurrentDictionary<ulong, Music> SongListCache = new();
+        public static ConcurrentDictionary<ulong, Music> SongCache = new();
+        // 实测 1000 多歌曲缓存文件大小为 332 KB，暂时或许优化必要不大，可以优化重复的 Album 的数量，让同一 Album 对象也唯一化
+        // 以上，效果不甚明显。
 
-        // 全局歌单缓存
-        public static ConcurrentDictionary<ulong, MusicList> AlbumListCache = new();
+        /// <summary>
+        /// 请用于可能较少歌曲不在缓存中的情况
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public async Task<List<Music>> GetOrRequestNewMusic(IEnumerable<ulong> ids)
+        {
+            var list = new List<Music>();
+            foreach (var id in ids)
+            {
+                if (Music.TryGet(id, out Music value))
+                {
+                    list.Add(value);
+                }
+                else
+                {
+                    list.Add((await FetchMusicNotCached(new[] { id }))[0]);
+                }
+            }
+
+            return list;
+        }
+
+        // 全局歌单缓存，实际效果存疑。
+        public static ConcurrentDictionary<ulong, MusicList> PlaylistCache = new();
+
 
         public RangeObservableCollection<ulong> LikeSongList = new();
-        public ulong LikeListId { get; set; }
-        public RangeObservableCollection<MusicList> AlbumList = new();
-        public RangeObservableCollection<MusicList> SubscribeAlbumList = new();
 
+        public Dictionary<string, ulong> LocalMusicList = new();
+
+        public ulong LikeListId { get; set; }
+        public RangeObservableCollection<MusicList> PlaylistsList = new();
+        public RangeObservableCollection<MusicList> SubscribedPlaylistsList = new();
+
+        public MediaPlayer Player = new();
+
+        public MediaPlaybackSession PlaybackSession => Player.PlaybackSession;
+
+        public PlayingInfomation Playing { get; set; } = new();
+
+        List<Music> OriginMusicList = new();
+
+        public void SetPlayList(IEnumerable<Music> list)
+        {
+            Playing.PlayList.Clear();
+
+            if (Playing.IsShuffled)
+            {
+                OriginMusicList = list.ToList();
+
+                Playing.PlayList.AddRange(list.GetShuffled());
+            }
+            else
+                Playing.PlayList.AddRange(list);
+        }
+        public void NextMusic()
+        {
+            if (Playing.CurrentPlay is null || Playing.PlayList.Count == 0) return;
+
+            PlayMusic(Playing.PlayList[Playing.PlayList.RollingNextIndex(Playing.PlayingIndex)]);
+        }
+        public void PreviousMusic()
+        {
+            if (Playing.CurrentPlay is null || Playing.PlayList.Count == 0) return;
+
+            PlayMusic(Playing.PlayList[Playing.PlayList.RollingPreviousIndex(Playing.PlayingIndex)]);
+        }
+        public void InsertToNext(Music music)
+        {
+            if (Playing.PlayList.Contains(music))
+            {
+                Playing.PlayList.Move(Playing.PlayList.IndexOf(music), Playing.PlayingIndex + 1);
+            }
+            else Playing.PlayList.Insert(Playing.PlayingIndex + 1, music);
+
+            Playing.PlayingIndex = Playing.PlayList.IndexOf(Playing.CurrentPlay);
+        }
+        public void TogglePause()
+        {
+            if (Playing.CurrentPlay is null) return;
+            if (Playing.IsPlaying)
+                Player.Pause();
+            else Player.Play();
+            Playing.IsPlaying = Playing.IsPaused;
+        }
+        public void ToggleLoop() { }//TODO 待实现
+        public void ToggleStopAfterwards() { }//TODO 待实现
+        public void ToggleShuffled()
+        {
+            if (Playing.IsShuffled)
+            {
+                Playing.PlayList.Clear();
+                Playing.PlayList.AddRange(OriginMusicList);
+                Playing.IsShuffled = false;
+            }
+            else
+            {
+                OriginMusicList = Playing.PlayList.ToList();
+                Playing.PlayList.Clear();
+                Playing.PlayList.AddRange(OriginMusicList.GetShuffled());
+                Playing.IsShuffled = true;
+            }
+
+            Playing.PlayingIndex = Playing.PlayList.IndexOf(Playing.CurrentPlay);
+        }
+        public void ToggleLike() { } //TODO 待实现
+        public async void PlayMusic(Music music)
+        {
+            // if no music in list, add to list
+            if (Playing.PlayList.Count == 0)
+                Playing.PlayList.Add(music);
+
+
+            if (LikeSongList.Contains(music.Id))
+            {
+                Playing.IsLiked = true;
+            }
+
+            Playing.PlayingIndex = Playing.PlayList.IndexOf(music);
+            Playing.CurrentPlay = music;
+            Playing.IsPlaying = true;
+            if (await SetPlayerSource(music))
+            {
+                Player.Play();
+            }
+            else { NextMusic(); }
+            //Playing.Duration = Player.NaturalDuration.TotalSeconds;
+        }
+
+        private async Task<bool> SetPlayerSource(Music music)
+        {
+            if (music.LocalPath != null)
+            {
+                // play from local
+                var localMusic = await StorageFile.GetFileFromPathAsync(music.LocalPath);
+                Player.Source = MediaSource.CreateFromStorageFile(localMusic);
+            }
+            else
+            {
+                // fetch from remote
+                var res = await api.RequestAsync(CloudMusicApiProviders.SongUrlV1, new()
+                {
+                    ["id"] = music.Id.ToString()
+                });
+
+                var uri = res["data"][0]["url"].ToString();
+                try
+                {
+                    Player.Source = MediaSource.CreateFromUri(new Uri(uri));
+                }
+                catch
+                {
+                    Player.Source = null;
+                    RaiseSetPlayerSourceError(music);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        TeachingTip tipHost = null;
+        public void SetTipHost(TeachingTip tip) => tipHost = tip;
+        public void SendTip(string Title, string Message)
+        {
+            if (tipHost is null) throw new ArgumentNullException(nameof(tipHost) + "未设置TipHost");
+
+            if (tipHost.IsOpen)
+            {
+                tipHost.IsOpen = false;
+            }
+            tipHost.Title = Title;
+            tipHost.Subtitle = Message;
+
+            tipHost.IsOpen = true;
+        }
+
+        public void RaiseSetPlayerSourceError(Music source)
+        {
+            SendTip("播放失败", $"歌曲: {source.Title} 获取url失败");
+        }
+
+        Frame rootFrame = null;
+        public void SetFrame(Frame frame) { rootFrame = frame; }
+        public void PageNavigateTo(Type type, object parameter = null)
+        {
+            if (parameter is null)
+                rootFrame.Navigate(type);
+            else rootFrame.Navigate(type, parameter);
+        }
+
+        public void NavigateToAlbum(ulong albumId)
+        {
+            PageNavigateTo(typeof(PlayListDetailPage), new AlbumNavigator { Id = albumId });
+        }
 
         public async void GetUserinfo()
         {
@@ -143,84 +514,36 @@ namespace NCloudMusic3
             }
             var result = await api.RequestAsync(CloudMusicApiProviders.LoginStatus, null, false);
 
+            UserProf.SetModel(result["profile"].ParseUser());
+            UserProf.IsLoginUser = true;
 
-            var prof = result["profile"];
-            {
-                User.IsLoginUser = true;
-                User.UserId = ((ulong)prof["userId"]);
-                User.Nickname = prof["nickname"].ToString();
-                User.AvatarUrl = prof["avatarUrl"].ToString();
-                User.BackgroudUrl = prof["backgroundUrl"].ToString();
-                User.Signature = prof["signature"].ToString();
-                User.CreateTime = DateTime.FromBinary((long)prof["createTime"]);
-            }
+            await UpdateMusicLists();
 
-            UpdateMusicLists();
+            LikeSongList.AddRange(await GetMusicList(UserProf.LikeListId));
         }
 
-        public async void UpdateMusicLists()
+        public async Task UpdateMusicLists()
         {
-            if (User.IsNotLoginUser)
+            if (UserProf.IsNotLoginUser)
             {
                 throw new Exception("User Not Logged in.");
             }
             var queries = new Dictionary<string, object>()
             {
-                ["uid"] = User.UserId
+                ["uid"] = UserProf.UserId
             };
-            var likeList = await api.RequestAsync(CloudMusicApiProviders.Likelist, queries, false);
+            //var likeList = await api.RequestAsync(CloudMusicApiProviders.Likelist, queries, false);
             var createdLists = await api.RequestAsync(CloudMusicApiProviders.UserPlaylist, queries, false);
-
-            var li = likeList["ids"].ToObject<ulong[]>();
-
-            using (LikeSongList.BatchUpdate())
-            {
-                foreach (var i in 0..li.Length)
-                {
-                    if (i < LikeSongList.Count)
-                    {
-                        LikeSongList[i] = li[i];
-                    }
-                    else
-                    {
-                        LikeSongList.Add(li[i]);
-                    }
-                }
-                if (li.Length < LikeSongList.Count)
-                    foreach (var i in li.Length..LikeSongList.Count)
-                    {
-                        LikeSongList.RemoveAt(i);
-                    }
-            }
 
             var (subscribedlists, createdlists) = createdLists["playlist"].Select(pl =>
             {
-
-                var el = new MusicList()
-                {
-                    Id = ((ulong)pl["id"]),
-                    Name = pl["name"].ToString(),
-                    CoverImgUrl = pl["coverImgUrl"].ToString(),
-                    Description = pl["description"]?.ToString(),
-                    TrackCount = ((int)pl["trackCount"]),
-                    IsFromSubscribe = ((bool)pl["subscribed"]),
-                    Creator = new User().With(u =>
-                    {
-
-                        u.UserId = ((ulong)pl["creator"]["userId"]);
-                        u.Nickname = pl["creator"]["nickname"].ToString();
-                        u.Signature = pl["creator"]["signature"].ToString();
-                        u.AvatarUrl = pl["creator"]["avatarUrl"].ToString();
-                    
-                    }) // TODO: 多个重复用户数据可以优化
-                    ,
-                    CreateTime = DateTime.FromBinary((long)pl["createTime"])
-                };
-
-                AlbumListCache[el.Id] = el;
+                var el = pl.ParseMusicList();
+                
+                // TODO 替换cache
+                PlaylistCache[el.Id] = el;
 
                 return el;
-            }).Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) => 
+            }).Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) =>
             {
                 if (el.IsFromSubscribe)
                     acc.Item1.Add(el);
@@ -228,19 +551,75 @@ namespace NCloudMusic3
 
                 return acc;
             });
-            User.LikeListId = createdlists[0].Id;
-            AlbumList.AddRange(createdlists);
-            SubscribeAlbumList.AddRange(subscribedlists);
+
+            UserProf.LikeListId = createdlists[0].Id;
+
+
+            PlaylistsList.AddRange(createdlists);
+            SubscribedPlaylistsList.AddRange(subscribedlists);
 
             return;
         }
 
-        public async void FetchMusic(IEnumerable<ulong> mids)
+        // 获取歌单中的歌曲列表（优先返回缓存，并随后调用更新回调）
+        public async Task<List<ulong>> GetMusicList(ulong playlistId, Action<List<ulong>> updateCallback = null, DispatcherQueue dispatcher = null)
+        {
+            string cachename = $"{playlistId}.list";
+
+            StorageFile cache;
+            try { cache = await LocalCacheFolder.GetFileAsync(cachename); }
+            catch { cache = null; }
+
+            if (cache != null && cache.DateCreated.AddDays(15) > DateTimeOffset.Now)
+            {
+                dispatcher?.TryEnqueue(async () =>
+                {
+                    List<ulong> list = await GetListFromNetworkAndCache(playlistId, cachename);
+
+                    updateCallback?.Invoke(list);
+                });
+                var txt = await FileIO.ReadTextAsync(cache);
+                return JsonSerializer.Deserialize<List<ulong>>(txt);
+            }
+            var list = await GetListFromNetworkAndCache(playlistId, cachename);
+
+            return list;
+
+            async Task<List<ulong>> GetListFromNetworkAndCache(ulong playlistId, string cachename)
+            {
+                var list = (await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new() { ["id"] = playlistId.ToString() }, false))["playlist"]["trackIds"].Select(t => ((ulong)t["id"])).ToList();
+                var newf = await LocalCacheFolder.CreateFileAsync(cachename, CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteTextAsync(newf, JsonSerializer.Serialize(list));
+                return list;
+            }
+        }
+
+        public async Task<List<Music>> FetchMusicNotCached(IEnumerable<ulong> mids)
+        {
+            var musicDetail = await api.RequestAsync(CloudMusicApiProviders.SongDetail,
+                    new()
+                    {
+                        ["ids"] = string.Join(",", mids.Select(id => id.ToString()))
+                    }, false);
+
+            var musicList = musicDetail["songs"].Select(s => s.ParseMusic()).ToList();
+
+            //foreach (var music in musicList)
+            //{
+            //    // TODO 替换cache
+            //    Music.AddOrUpdate(music.Id, music, (id, old) => music);
+            //}
+
+            return musicList;
+        }
+
+        // 获取不在缓存中的歌曲，加入缓存。
+        public async Task PrepareMusic(IEnumerable<ulong> mids)
         {
             List<ulong> toFetch = new();
             foreach (var m in mids)
             {
-                if (SongListCache.TryGetValue(m, out var _))
+                if (Music.TryGet(m, out var _))
                 {
                 }
                 else toFetch.Add(m);
@@ -249,43 +628,57 @@ namespace NCloudMusic3
             if (toFetch.Count == 0)
                 return;
 
-            var likedMusic = await api.RequestAsync(CloudMusicApiProviders.SongDetail,
+            var musicDetail = await api.RequestAsync(CloudMusicApiProviders.SongDetail,
                     new()
                     {
                         ["ids"] = string.Join(",", toFetch.Select(id => id.ToString()))
                     }, false);
 
-            var musicList = likedMusic["songs"].Select(s => new Music()
-            {
-                Id = ((ulong)s["id"]),
-                Title = s["name"].ToString(),
-                Album = new()
-                {
-                    Id = ((ulong)s["al"]["id"]),
-                    Name = s["al"]["name"].ToString(),
-                    PictureUrl = s["al"]["picUrl"].ToString()
-                },
-                Artists = s["ar"].Select(ar => new Artist()
-                {
-                    Id = ((ulong)ar["id"]),
-                    Name = ar["name"].ToString(),
-                    Alias = new Artist[1] // TODO: check artist alias
-                }).ToArray(),
-                Translation = s["tns"]?.ToObject<string[]>(),
-                CloudInfo = (Music.CloudType)((int)s["t"]),
-                Alias = s["alia"].ToObject<string[]>()
-            }).ToList();
+            var musicList = musicDetail["songs"].Select(s => s.ParseMusic()).ToList();
 
-            foreach (var s in musicList)
-            {
-                SongListCache.TryAdd(s.Id, s);
-            }
+            //foreach (var s in musicList)
+            //{
+            //    // TODO 替换cache
+            //    SongCache.TryAdd(s.Id, s);
+            //}
+
 
             
-            var cachefile = await LocalCacheFolder.CreateFileAsync(MusicCacheFile, CreationCollisionOption.ReplaceExisting);
+        }
 
-            await FileIO.WriteTextAsync(cachefile, JsonSerializer.Serialize(SongListCache));
+        internal async Task<MusicList> GetPlaylistInfo(ulong playlistId)
+        {
+            if (PlaylistCache.ContainsKey(playlistId)) return PlaylistCache[playlistId];
+
+            var t = await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new()
+            {
+                ["id"] = playlistId.ToString(),
+            });
+            // TODO 查看返回值结构
+            throw new NotImplementedException();
+        }
+
+        internal async Task<(Album, List<Music>)> GetAlbumInfo(ulong aid)
+        {
+            var t = await api.RequestAsync(CloudMusicApiProviders.Album, new()
+            {
+                ["id"] = aid.ToString(),
+            });
             
+            var al = t["album"].ParseAlbum();
+            //    Album.CreateOrUpdate(aid, a =>
+            //{
+            //    a.Name = t["album"]["name"].ToString();
+            //    a.Description = t["album"]["description"].ToString();
+            //    a.PictureUrl = t["album"]["picUrl"].ToString();
+            //    a.Artists = t["album"]["artists"].Select(ar => Artist.Create((ulong)ar["id"], ar["name"].ToString()).With(a =>
+            //    {
+            //        a.PictureUrl = ar["picUrl"].ToString();
+            //    })).ToArray();
+            //});
+            var ml = t["songs"].Select(j => j.ParseMusic()).ToList();
+
+            return (al, ml);
         }
 
         //public async void FetchAlbums()
