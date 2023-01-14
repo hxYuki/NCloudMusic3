@@ -10,11 +10,17 @@
     <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
+    <DefaultLanguage>zh-cn</DefaultLanguage>
+    <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Controls\ArtistsListWithDivider.xaml" />
+    <None Remove="Controls\FoldableTextBlock.xaml" />
+    <None Remove="Controls\MusicList.xaml" />
     <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
     <None Remove="Pages\MainPage.xaml" />
+    <None Remove="Resources\ListViewStyle.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221116.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
     <PackageReference Include="PInvoke.Kernel32" Version="0.7.124" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
@@ -49,6 +55,26 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCMAPI\NCMAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\FoldableTextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\MusicList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\ArtistsListWithDivider.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Resources\ListViewStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\MainPage.xaml">
@@ -74,4 +100,10 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\HissY\source\repos\NCloudMusic3\NCloudMusic3\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\HissY\source\repos\NCloudMusic3\NCloudMusic3\.editorconfig" />
+  </ItemGroup>
 </Project>
