@@ -36,8 +36,6 @@ namespace NCloudMusic3.Pages
         RangeObservableCollection<Music> ListMusicDetail { get; set; } = new();
         RangeObservableCollection<ulong> ListMusicId { get; set; } = new();
 
-        
-
         public PlayListDetailPage()
         {
             this.InitializeComponent();

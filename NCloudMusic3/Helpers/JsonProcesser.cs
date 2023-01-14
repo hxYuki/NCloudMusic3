@@ -43,7 +43,7 @@ namespace NCloudMusic3.Helpers
             }
             if (jToken["publishTime"] is not null)
             {
-                r.PublishTime = (DateTime.FromBinary(((long)jToken["publishTime"])));
+                r.PublishTime = (DateTime.FromBinary((long)jToken["publishTime"]));
             }
             if (jToken["transNames"] is not null && jToken["transNames"].HasValues)
             {

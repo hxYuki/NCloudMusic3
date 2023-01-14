@@ -275,11 +275,9 @@
                                     <TextBlock Text="当前播放列表" HorizontalTextAlignment="Center"/>
                                 </StackPanel>
                                 <ListView x:Name="currentPlayList"
-                                      
                                           Width="400"
                                           MaxHeight="400"
                                           Loaded="currentPlayList_Loaded"
-                                      
                                           ScrollViewer.IsDeferredScrollingEnabled="True"
                                           ItemContainerStyle="{ThemeResource DefaultListViewItemStyle}"
                                           ShowsScrollingPlaceholders="True">

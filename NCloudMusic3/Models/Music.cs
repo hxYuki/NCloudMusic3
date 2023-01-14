@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace NCloudMusic3.Models
 {
     // TODO 将所有数据获取移动到此处。。使用LRU缓存
-    public class Music : CacheHolder<ulong, Music>
+    public class Music : CacheHolder<ulong, Music>, IEquatable<Music>
     {
         //static Dictionary<ulong, Music> g = new();
 
@@ -23,6 +23,11 @@ namespace NCloudMusic3.Models
         public CloudType CloudInfo { get; set; }
         public string Path { get; set; }
         public string LocalPath { get; set; }
+
+        public bool Equals(Music other)
+        {
+            return Id.Equals(other.Id);
+        }
 
         public enum CloudType
         {

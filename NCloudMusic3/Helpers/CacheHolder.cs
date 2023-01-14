@@ -52,8 +52,9 @@ namespace NCloudMusic3.Helpers
         {
             var cachefile = await cacheFolder.CreateFileAsync(typeof(TValue).Name+".t.cache", CreationCollisionOption.ReplaceExisting);
 
-            await FileIO.WriteTextAsync(cachefile, JsonSerializer.Serialize(cache, new JsonSerializerOptions() { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault }));
+            await FileIO.WriteTextAsync(cachefile, JsonSerializer.Serialize(cache, options));
         }
+        static JsonSerializerOptions options = new () { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
         public static async Task LoadCache(StorageFolder cacheFolder)
         {
             var cachefile = await cacheFolder.TryGetItemAsync(typeof(TValue).Name + ".t.cache");
@@ -62,7 +63,7 @@ namespace NCloudMusic3.Helpers
             {
                 var txt = File.ReadAllText(cachefile.Path);
 
-                cache = JsonSerializer.Deserialize<Dictionary<TKey, TValue>>(txt);
+                cache = JsonSerializer.Deserialize<Dictionary<TKey, TValue>>(txt, options);
             }
         }
     }

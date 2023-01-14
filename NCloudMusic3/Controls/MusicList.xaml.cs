@@ -18,6 +18,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinRT;
+using static System.Net.Mime.MediaTypeNames;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -67,13 +68,10 @@ namespace NCloudMusic3.Controls
             App.Instance.PlayMusic(music);
         }
 
-        private void list_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
-        {
-
-        }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            list.ItemsSource = Musics;
             App.Instance.Player.MediaOpened += Player_MediaOpened;
         }
 
@@ -83,6 +81,7 @@ namespace NCloudMusic3.Controls
             {
                 if (Musics.Contains(App.Instance.Playing.CurrentPlay))
                     list.SelectedItem = App.Instance.Playing.CurrentPlay;
+                
                 // TODO: 列表上下文菜单选项记忆。
             });
         }
@@ -90,6 +89,64 @@ namespace NCloudMusic3.Controls
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             App.Instance.Player.MediaOpened -= Player_MediaOpened;
+        }
+
+        List<Music> searchFilters = new();
+        IEnumerable<Music>? temp = null;
+        string lastSearch = "";
+
+        private void AutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
+
+            if (searchFilters.Count == 0)
+                searchFilters = Musics.ToList();
+            var txt = sender.Text;
+            
+            sender.ItemsSource = MusicSearch(txt).Take(12).ToList();
+        }
+
+        private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+        {
+
+        }
+
+        private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+            if (args.ChosenSuggestion is Music music)
+            {
+                Musics.Clear();
+                Musics.Add(music);
+            }
+            else if (string.IsNullOrEmpty(args.QueryText))
+            {
+                Musics.Clear();
+                Musics.AddRange(searchFilters);
+            }
+            else
+            {
+                Musics.Clear();
+                Musics.AddRange(MusicSearch(args.QueryText));
+            }
+        }
+
+        private IEnumerable<Music> MusicSearch(string searchText)
+        {
+            if (searchText == lastSearch) return temp;
+
+            var highPresult = searchFilters.Where(
+                            m => m.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                                || (m.Alias?.Any(al => al.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false)
+                                || (m.Translation?.Any(al => al.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false));
+            temp = highPresult.Concat(
+                    searchFilters.Except(highPresult).Where(m => m.Artists.Any(
+                        a => a.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                            || (a.Alias?.Any(al => al.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false)
+                            || (a.Translations?.Any(al => al.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false))
+                        || m.Album.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                        || (m.Album.Translations?.Any(tl => tl.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false))
+                );
+            return temp;
         }
     }
 }

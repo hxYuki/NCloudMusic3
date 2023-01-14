@@ -12,9 +12,10 @@
     Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded">
 
     <Grid>
-        <ListView ShowsScrollingPlaceholders="True" x:Name="list"
-                  ItemsSource="{x:Bind Musics, Mode=OneWay}"
-                  ContextRequested="list_ContextRequested">
+        <ListView ShowsScrollingPlaceholders="True" x:Name="list" ScrollViewer.IsDeferredScrollingEnabled="True"
+                  
+                  ItemContainerStyle="{ThemeResource DefaultListViewItemStyle}"
+                  >
             <ListView.Header>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -31,7 +32,18 @@
                         <Button Content="Play All"/>
                         <Button Content="Download"/>
                         <Button Content="Collect"/> <!--自己的歌单不显示-->
-                        <AutoSuggestBox Width="160" PlaceholderText="Search in list.." QueryIcon="Find"/>
+                        <AutoSuggestBox Width="160" PlaceholderText="Search in list.." QueryIcon="Find"
+                                        TextChanged="AutoSuggestBox_TextChanged"
+                                        SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                                        QuerySubmitted="AutoSuggestBox_QuerySubmitted"
+                                        
+                                        TextMemberPath="Title">
+                            <AutoSuggestBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:Music">
+                                    <TextBlock Text="{Binding Title}"/>
+                                </DataTemplate>
+                            </AutoSuggestBox.ItemTemplate>
+                        </AutoSuggestBox>
                     </StackPanel>
                 </Grid>
             </ListView.Header>
