@@ -17,11 +17,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="37"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" x:Name="descriptionBlock"
                    Text="{x:Bind Text, Mode=OneWay}" TextWrapping="WrapWholeWords" SizeChanged="descriptionBlock_SizeChanged"/>
-        <Button Grid.Row="1" x:Name="toggleExtendButton"
+        <Button Grid.Row="1" x:Name="toggleExtendButton" Height="32" Margin="0,5,0,0"
                 Content="{x:Bind MiscData.ExtendButtonText, Mode=OneWay}" Visibility="{x:Bind MiscData.ShowToggleButton, Mode=OneWay}" Click="toggleExtendButton_Click">
 
         </Button>

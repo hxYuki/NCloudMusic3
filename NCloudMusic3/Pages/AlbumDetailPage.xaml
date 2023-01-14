@@ -25,7 +25,7 @@
         </Grid.RowDefinitions>
 
         <controls:MusicList Grid.Row="1"
-                  Musics="{x:Bind ListMusicDetail}" LayoutUpdated="ListView_LayoutUpdated">
+                  Musics="{x:Bind ListMusicDetail}">
             <controls:MusicList.Header>
                 <Grid DataContext="{x:Bind MusicListInfo}">
                     <Grid.RowDefinitions>
@@ -39,45 +39,26 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="40"/>
-
                     </Grid.ColumnDefinitions>
-                    <Border CornerRadius="20,20,0,0" Background="{StaticResource CardBackgroundFillColorDefault}"
+                    
+                    <Border CornerRadius="20,20,0,0" Background="{ThemeResource CardBackgroundFillColorDefault}"
                             Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0">
                     </Border>
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource TitleLargeTextBlockStyle}" VerticalAlignment="Bottom" HorizontalTextAlignment="Start"
+                    <TextBlock Text="{Binding Name}" Style="{ThemeResource TitleLargeTextBlockStyle}" VerticalAlignment="Bottom" HorizontalTextAlignment="Start"
                            Grid.Row="0" Grid.Column="2"/>
                     <Border Width="100" Height="100" CornerRadius="10" Margin="20,20,20,-70"
                             Grid.Row="0" Grid.RowSpan="1" Grid.Column="1">
                         <Image Source="{Binding CoverImgUrl}"/>
                     </Border>
 
-                    <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <StackPanel Grid.Row="0"
-                                    Orientation="Horizontal" VerticalAlignment="Stretch">
-                            <TextBlock Text="创建者：" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}"/>
+                    <StackPanel Grid.Column="2" Grid.Row="1" Grid.RowSpan="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+                            <TextBlock Text="创建者：" VerticalAlignment="Center" Foreground="{ThemeResource CaptionTextColor}" Style="{ThemeResource CaptionTextBlockStyle}"/>
                             <HyperlinkButton DataContext="{Binding Creator}" Content="{Binding Nickname}" />
                         </StackPanel>
 
-                        <controls:FoldableTextBlock Grid.Row="1" Text="{Binding Description}" />
-                        
-                    </Grid>
-
-                    <RelativePanel Grid.Row="2" Grid.Column="2">
-                        <StackPanel RelativePanel.AlignRightWithPanel="True"
-                                    Margin="0,-30,0,0" Spacing="5"
-                                    Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="Play All"/>
-
-                            <AutoSuggestBox Width="160" PlaceholderText="Search in list.." QueryIcon="Find"/>
-                        </StackPanel>
-                    </RelativePanel>
-
+                        <controls:FoldableTextBlock Text="{Binding Description}" />
+                    </StackPanel>
                 </Grid>
             </controls:MusicList.Header>
         </controls:MusicList>

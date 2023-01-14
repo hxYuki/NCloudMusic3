@@ -26,45 +26,7 @@ using NCloudMusic3.ViewModels;
 
 namespace NCloudMusic3.Pages
 {
-    class MiscData : NotifyPropertyChanged
-    {
-        private bool showToggleButton;
-        private bool isExpended = false;
-        private GridLength blockHeight = new GridLength(41);
-        private string extendButtonText;
-
-        public bool ShowToggleButton
-        {
-            get => showToggleButton; set
-            {
-                showToggleButton = value; RaisePropertyChanged();
-            }
-        }
-
-        public bool IsExpended
-        {
-            get => isExpended; set
-            {
-                isExpended = value; RaisePropertyChanged();
-            }
-        }
-
-        public GridLength BlockHeight
-        {
-            get => blockHeight; set
-            {
-                blockHeight = value; RaisePropertyChanged();
-            }
-        }
-
-        public string ExtendButtonText
-        {
-            get => extendButtonText; set
-            {
-                extendButtonText = value; RaisePropertyChanged();
-            }
-        }
-    }
+    
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -74,7 +36,7 @@ namespace NCloudMusic3.Pages
         RangeObservableCollection<Music> ListMusicDetail { get; set; } = new();
         RangeObservableCollection<ulong> ListMusicId { get; set; } = new();
 
-        MiscData MiscData { get; set; } = new();
+        
 
         public PlayListDetailPage()
         {
@@ -101,9 +63,9 @@ namespace NCloudMusic3.Pages
 
             if (e.Parameter is ulong pid)
             {
-                // TODO 此缓存作用似乎不大
-                App.Instance.GetPlaylistInfo(pid);
-                MusicListInfo.SetModel(App.PlaylistCache[pid]);
+                
+                var pl = await App.Instance.GetPlaylistInfo(pid);
+                MusicListInfo.SetModel(pl);
 
                 SetMusicList(pid);
             }
@@ -141,14 +103,6 @@ namespace NCloudMusic3.Pages
         }
 
         
-
-        
-
-        private void ListView_LayoutUpdated(object sender, object e)
-        {
-
-        }
-
 
         
     }

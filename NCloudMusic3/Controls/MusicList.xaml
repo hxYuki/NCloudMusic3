@@ -17,9 +17,22 @@
                   ContextRequested="list_ContextRequested">
             <ListView.Header>
                 <Grid>
-                    <ContentControl HorizontalAlignment="Stretch"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ContentControl Grid.Row="0" Grid.RowSpan="2"
+                                    HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch"
                                     Content="{x:Bind Header}"/>
+                    <StackPanel Grid.Row="1" Margin="0,0,10,5"
+                                Orientation="Horizontal" HorizontalAlignment="Right"
+                                Spacing="10">
+                        <Button Content="Play All"/>
+                        <Button Content="Download"/>
+                        <Button Content="Collect"/> <!--自己的歌单不显示-->
+                        <AutoSuggestBox Width="160" PlaceholderText="Search in list.." QueryIcon="Find"/>
+                    </StackPanel>
                 </Grid>
             </ListView.Header>
             <ListView.ItemsPanel>

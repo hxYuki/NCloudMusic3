@@ -539,8 +539,8 @@ namespace NCloudMusic3
             {
                 var el = pl.ParseMusicList();
                 
-                // TODO Ìæ»»cache
-                PlaylistCache[el.Id] = el;
+                //// TODO Ìæ»»cache
+                //PlaylistCache[el.Id] = el;
 
                 return el;
             }).Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) =>
@@ -648,7 +648,7 @@ namespace NCloudMusic3
 
         internal async Task<MusicList> GetPlaylistInfo(ulong playlistId)
         {
-            if (PlaylistCache.ContainsKey(playlistId)) return PlaylistCache[playlistId];
+            if (MusicList.TryGet(playlistId, out var ls)) return ls;
 
             var t = await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new()
             {
