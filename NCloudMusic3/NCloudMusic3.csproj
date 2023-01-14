@@ -17,9 +17,9 @@
     <None Remove="Controls\ArtistsListWithDivider.xaml" />
     <None Remove="Controls\FoldableTextBlock.xaml" />
     <None Remove="Controls\MusicList.xaml" />
-    <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
     <None Remove="Pages\MainPage.xaml" />
+    <None Remove="Pages\PlaylistDetailPage.xaml" />
     <None Remove="Resources\ListViewStyle.xaml" />
   </ItemGroup>
 
@@ -82,7 +82,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\AlbumDetailPage.xaml">
+    <Page Update="Pages\PlaylistDetailPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
