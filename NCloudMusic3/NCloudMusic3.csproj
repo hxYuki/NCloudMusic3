@@ -17,6 +17,7 @@
     <None Remove="Controls\ArtistsListWithDivider.xaml" />
     <None Remove="Controls\FoldableTextBlock.xaml" />
     <None Remove="Controls\MusicList.xaml" />
+    <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
     <None Remove="Pages\MainPage.xaml" />
     <None Remove="Pages\PlaylistDetailPage.xaml" />
@@ -105,5 +106,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="C:\Users\HissY\source\repos\NCloudMusic3\NCloudMusic3\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\AlbumDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 </Project>

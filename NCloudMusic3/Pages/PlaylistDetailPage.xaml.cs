@@ -67,11 +67,6 @@ namespace NCloudMusic3.Pages
 
                 SetMusicList(pid);
             }
-            else if (e.Parameter is AlbumNavigator { Id: ulong albumId })
-            {
-                // TODO 
-                var (info, list) = await App.Instance.GetAlbumInfo(albumId);
-            }
         }
 
         private async void SetMusicList(ulong aid)

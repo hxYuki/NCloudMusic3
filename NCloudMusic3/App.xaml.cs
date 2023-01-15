@@ -503,7 +503,7 @@ namespace NCloudMusic3
 
         public void NavigateToAlbum(ulong albumId)
         {
-            PageNavigateTo(typeof(PlayListDetailPage), new AlbumNavigator { Id = albumId });
+            PageNavigateTo(typeof(AlbumDetailPage), albumId);
         }
 
         public async void GetUserinfo()
