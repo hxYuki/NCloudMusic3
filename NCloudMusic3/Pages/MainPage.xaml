@@ -78,8 +78,8 @@
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xf12b;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Icon="Clock" Content="History" Tag="HistoryPage" />
-                <NavigationViewItem Content="Favorite" Icon="OutlineStar"/>
+                <NavigationViewItem Icon="Clock" Content="History" Tag="HistoryPage"/>
+                <NavigationViewItem Content="Collections" Icon="OutlineStar"/>
 
 
                 <NavigationViewItemSeparator/>

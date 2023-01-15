@@ -48,11 +48,18 @@ namespace NCloudMusic3.Controls
                 typeof(UIElement),
                 typeof(MusicList),
                 new PropertyMetadata(null));
+        public Brush ItemPanelBackground { get=>(Brush)GetValue(ItemPanelBackgroundProperty); set=>SetValue(ItemPanelBackgroundProperty,value); }
+        public static readonly DependencyProperty ItemPanelBackgroundProperty = DependencyProperty.Register(
+                nameof(ItemPanelBackground),
+                typeof(Brush),
+                typeof(MusicList),
+                new PropertyMetadata(null));
 
         //private RangeObservableCollection<Music> musicItems { get; set; } = new();
         public MusicList()
         {
             this.InitializeComponent();
+            
         }
 
         private void AlbumButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -147,6 +154,12 @@ namespace NCloudMusic3.Controls
                         || (m.Album.Translations?.Any(tl => tl.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ?? false))
                 );
             return temp;
+        }
+
+        private void list_Loaded(object sender, RoutedEventArgs e)
+        {
+            list.ItemsPanelRoot.Background = ItemPanelBackground;
+            
         }
     }
 }

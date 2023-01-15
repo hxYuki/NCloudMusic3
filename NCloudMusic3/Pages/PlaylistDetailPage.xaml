@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <controls:MusicList Grid.Row="1"
-                  Musics="{x:Bind ListMusicDetail}">
+                  Musics="{x:Bind ListMusicDetail}" ItemPanelBackground="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <controls:MusicList.Header>
                 <Grid DataContext="{x:Bind MusicListInfo}">
                     <Grid.RowDefinitions>
