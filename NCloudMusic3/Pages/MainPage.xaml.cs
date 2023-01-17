@@ -33,11 +33,10 @@ namespace NCloudMusic3.Pages
     public sealed partial class MainPage : Page
     {
         internal UserProfile UserProfile => App.Instance.UserProf;
-        internal ulong LikeListId => App.Instance.LikeListId;
 
         public PlayingInfomation Playing => App.Instance.Playing;
 
-        public ObservableCollection<MusicList> CreatedList => App.Instance.PlaylistsList;
+        public ObservableCollection<MusicList> CreatedList => App.Instance.MyPlaylistsList;
         public ObservableCollection<MusicList> LikedList => App.Instance.SubscribedPlaylistsList;
 
         
@@ -176,7 +175,8 @@ namespace NCloudMusic3.Pages
         {
             if (args.IsSettingsSelected)
             {
-                // TODO: navigate to settings
+                contentFrame.Navigate(typeof(SettingsPage));
+
             }
             else
             {
@@ -197,7 +197,7 @@ namespace NCloudMusic3.Pages
                         contentFrame.Navigate(typeof(PlayListDetailPage), id);
 
                     }
-                    // TODO: ĞŞ¸ÄÓÃ»§ĞÅÏ¢µ¼º½£¬½ö±£ÁôµÇÂ¼ÍË³ö¹¦ÄÜ¡£Ï²»¶µÄÒôÀÖ Í¬ÑùÊ¹ÓÃ×¨¼­Ò³Ãæ-Í¨¹ı²ÎÊı¾ö¶¨Ò³ÃæÄÚÈİ¡£
+                    // TODO: ä¿®æ”¹ç”¨æˆ·ä¿¡æ¯å¯¼èˆªï¼Œä»…ä¿ç•™ç™»å½•é€€å‡ºåŠŸèƒ½ã€‚å–œæ¬¢çš„éŸ³ä¹ åŒæ ·ä½¿ç”¨ä¸“è¾‘é¡µé¢-é€šè¿‡å‚æ•°å†³å®šé¡µé¢å†…å®¹ã€‚
                 }
             }
         }

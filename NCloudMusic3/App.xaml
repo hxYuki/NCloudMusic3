@@ -21,7 +21,7 @@
             <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled" Color="Transparent"/>
 
             <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
-
+            <cv:EnumToIntConverter x:Key="EnumToInt"/>
 
 
             <SolidColorBrush x:Key="CaptionTextColor" Color="#b2b2b2"/>

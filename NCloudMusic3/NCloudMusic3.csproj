@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows10.0.19041.0</TargetFramework>
@@ -15,12 +15,14 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\ArtistsListWithDivider.xaml" />
+    <None Remove="Controls\EnumComboBox.xaml" />
     <None Remove="Controls\FoldableTextBlock.xaml" />
     <None Remove="Controls\MusicList.xaml" />
     <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
     <None Remove="Pages\MainPage.xaml" />
     <None Remove="Pages\PlaylistDetailPage.xaml" />
+    <None Remove="Pages\SettingsPage.xaml" />
     <None Remove="Resources\ListViewStyle.xaml" />
   </ItemGroup>
 
@@ -56,6 +58,16 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCMAPI\NCMAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\EnumComboBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\FoldableTextBlock.xaml">
@@ -101,12 +113,6 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
-  <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\HissY\source\repos\NCloudMusic3\NCloudMusic3\.editorconfig" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="C:\Users\HissY\source\repos\NCloudMusic3\NCloudMusic3\.editorconfig" />
-  </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\AlbumDetailPage.xaml">
       <Generator>MSBuild:Compile</Generator>

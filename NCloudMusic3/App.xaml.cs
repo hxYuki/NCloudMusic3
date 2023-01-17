@@ -168,7 +168,8 @@ namespace NCloudMusic3
         public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
         public StorageFolder LocalCacheFolder = ApplicationData.Current.LocalCacheFolder;
 
-        const string MusicCacheFile = "music.cache";
+        public Config AppConfig = new();
+        //const string MusicCacheFile = "music.cache";
         //const string AlbumCacheFile = "album.cache";
 
         public CloudMusicApi api;
@@ -205,7 +206,7 @@ namespace NCloudMusic3
             m_window.Activate();
             m_window.appWindow.Closing += AppWindow_Closing;
 
-
+            LoadSettings();
 
             Login = new();
 
@@ -235,10 +236,27 @@ namespace NCloudMusic3
 
 
         }
-
+        private void LoadSettings()
+        {
+            var settings = LocalSettings.Values["Settings"];
+            if (settings is string config)
+            {
+                AppConfig = JsonSerializer.Deserialize<Config>(config);
+            }
+            else
+            {
+                AppConfig = Config.Default;
+                SaveConfig();
+            }
+        }
+        public void SaveConfig()
+        {
+            LocalSettings.Values["Settings"] = JsonSerializer.Serialize(AppConfig);
+        }
         private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             args.Cancel = true;
+            SaveConfig();
             await SavePlayingStatus();
 
             m_window.Close();
@@ -299,19 +317,13 @@ namespace NCloudMusic3
         internal MainWindow m_window;
         private static App instance;
 
-        public bool LoginState = false;
-
         public LoginDialog Login;
 
         internal UserProfile UserProf { get; private set; } = new();
 
-        // È«¾Ö¸èÇú»º´æ£¬¸èÇúid - ¸èÇú¶ÔÏó
-        public static ConcurrentDictionary<ulong, Music> SongCache = new();
-        // Êµ²â 1000 ¶à¸èÇú»º´æÎÄ¼ş´óĞ¡Îª 332 KB£¬ÔİÊ±»òĞíÓÅ»¯±ØÒª²»´ó£¬¿ÉÒÔÓÅ»¯ÖØ¸´µÄ Album µÄÊıÁ¿£¬ÈÃÍ¬Ò» Album ¶ÔÏóÒ²Î¨Ò»»¯
-        // ÒÔÉÏ£¬Ğ§¹û²»ÉõÃ÷ÏÔ¡£
 
         /// <summary>
-        /// ÇëÓÃÓÚ¿ÉÄÜ½ÏÉÙ¸èÇú²»ÔÚ»º´æÖĞµÄÇé¿ö
+        /// è¯·ç”¨äºå¯èƒ½è¾ƒå°‘æ­Œæ›²ä¸åœ¨ç¼“å­˜ä¸­çš„æƒ…å†µ
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
@@ -333,16 +345,12 @@ namespace NCloudMusic3
             return list;
         }
 
-        // È«¾Ö¸èµ¥»º´æ£¬Êµ¼ÊĞ§¹û´æÒÉ¡£
-        public static ConcurrentDictionary<ulong, MusicList> PlaylistCache = new();
-
 
         public RangeObservableCollection<ulong> LikeSongList = new();
 
         public Dictionary<string, ulong> LocalMusicList = new();
 
-        public ulong LikeListId { get; set; }
-        public RangeObservableCollection<MusicList> PlaylistsList = new();
+        public RangeObservableCollection<MusicList> MyPlaylistsList = new();
         public RangeObservableCollection<MusicList> SubscribedPlaylistsList = new();
 
         public MediaPlayer Player = new();
@@ -351,6 +359,7 @@ namespace NCloudMusic3
 
         public PlayingInfomation Playing { get; set; } = new();
 
+        // TODO æˆ–è®¸åº”è¯¥å°†åŸæ’­æ”¾åˆ—è¡¨åŠ å…¥Playingå¹¶åœ¨å…³é—­æ—¶ä¿å­˜
         List<Music> OriginMusicList = new();
 
         public void SetPlayList(IEnumerable<Music> list)
@@ -396,8 +405,8 @@ namespace NCloudMusic3
             else Player.Play();
             Playing.IsPlaying = Playing.IsPaused;
         }
-        public void ToggleLoop() { }//TODO ´ıÊµÏÖ
-        public void ToggleStopAfterwards() { }//TODO ´ıÊµÏÖ
+        public void ToggleLoop() { }//TODO å¾…å®ç°
+        public void ToggleStopAfterwards() { }//TODO å¾…å®ç°
         public void ToggleShuffled()
         {
             if (Playing.IsShuffled)
@@ -416,7 +425,7 @@ namespace NCloudMusic3
 
             Playing.PlayingIndex = Playing.PlayList.IndexOf(Playing.CurrentPlay);
         }
-        public void ToggleLike() { } //TODO ´ıÊµÏÖ
+        public void ToggleLike() { } //TODO å¾…å®ç°
         public async void PlayMusic(Music music)
         {
             // if no music in list, add to list
@@ -475,7 +484,7 @@ namespace NCloudMusic3
         public void SetTipHost(TeachingTip tip) => tipHost = tip;
         public void SendTip(string Title, string Message)
         {
-            if (tipHost is null) throw new ArgumentNullException(nameof(tipHost) + "Î´ÉèÖÃTipHost");
+            if (tipHost is null) throw new ArgumentNullException(nameof(tipHost) + "æœªè®¾ç½®TipHost");
 
             if (tipHost.IsOpen)
             {
@@ -489,7 +498,7 @@ namespace NCloudMusic3
 
         public void RaiseSetPlayerSourceError(Music source)
         {
-            SendTip("²¥·ÅÊ§°Ü", $"¸èÇú: {source.Title} »ñÈ¡urlÊ§°Ü");
+            SendTip("æ’­æ”¾å¤±è´¥", $"æ­Œæ›²: {source.Title} è·å–urlå¤±è´¥");
         }
 
         Frame rootFrame = null;
@@ -535,33 +544,26 @@ namespace NCloudMusic3
             //var likeList = await api.RequestAsync(CloudMusicApiProviders.Likelist, queries, false);
             var createdLists = await api.RequestAsync(CloudMusicApiProviders.UserPlaylist, queries, false);
 
-            var (subscribedlists, createdlists) = createdLists["playlist"].Select(pl =>
-            {
-                var el = pl.ParseMusicList();
-                
-                //// TODO Ìæ»»cache
-                //PlaylistCache[el.Id] = el;
+            var (subscribedlists, createdlists) = createdLists["playlist"].Select(pl => pl.ParseMusicList())
+                .Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) =>
+                    {
+                        if (el.IsFromSubscribe)
+                            acc.Item1.Add(el);
+                        else acc.Item2.Add(el);
 
-                return el;
-            }).Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) =>
-            {
-                if (el.IsFromSubscribe)
-                    acc.Item1.Add(el);
-                else acc.Item2.Add(el);
-
-                return acc;
-            });
+                        return acc;
+                    });
 
             UserProf.LikeListId = createdlists[0].Id;
 
 
-            PlaylistsList.AddRange(createdlists);
+            MyPlaylistsList.AddRange(createdlists);
             SubscribedPlaylistsList.AddRange(subscribedlists);
 
             return;
         }
 
-        // »ñÈ¡¸èµ¥ÖĞµÄ¸èÇúÁĞ±í£¨ÓÅÏÈ·µ»Ø»º´æ£¬²¢Ëæºóµ÷ÓÃ¸üĞÂ»Øµ÷£©
+        // è·å–æ­Œå•ä¸­çš„æ­Œæ›²åˆ—è¡¨ï¼ˆä¼˜å…ˆè¿”å›ç¼“å­˜ï¼Œå¹¶éšåè°ƒç”¨æ›´æ–°å›è°ƒï¼‰
         public async Task<List<ulong>> GetMusicList(ulong playlistId, Action<List<ulong>> updateCallback = null, DispatcherQueue dispatcher = null)
         {
             string cachename = $"{playlistId}.list";
@@ -604,16 +606,10 @@ namespace NCloudMusic3
 
             var musicList = musicDetail["songs"].Select(s => s.ParseMusic()).ToList();
 
-            //foreach (var music in musicList)
-            //{
-            //    // TODO Ìæ»»cache
-            //    Music.AddOrUpdate(music.Id, music, (id, old) => music);
-            //}
-
             return musicList;
         }
 
-        // »ñÈ¡²»ÔÚ»º´æÖĞµÄ¸èÇú£¬¼ÓÈë»º´æ¡£
+        // è·å–ä¸åœ¨ç¼“å­˜ä¸­çš„æ­Œæ›²ï¼ŒåŠ å…¥ç¼“å­˜ã€‚
         public async Task PrepareMusic(IEnumerable<ulong> mids)
         {
             List<ulong> toFetch = new();
@@ -636,14 +632,6 @@ namespace NCloudMusic3
 
             var musicList = musicDetail["songs"].Select(s => s.ParseMusic()).ToList();
 
-            //foreach (var s in musicList)
-            //{
-            //    // TODO Ìæ»»cache
-            //    SongCache.TryAdd(s.Id, s);
-            //}
-
-
-            
         }
 
         internal async Task<MusicList> GetPlaylistInfo(ulong playlistId)
@@ -654,7 +642,7 @@ namespace NCloudMusic3
             {
                 ["id"] = playlistId.ToString(),
             });
-            // TODO ²é¿´·µ»ØÖµ½á¹¹
+            // TODO æŸ¥çœ‹è¿”å›å€¼ç»“æ„
             throw new NotImplementedException();
         }
 
@@ -664,7 +652,7 @@ namespace NCloudMusic3
             {
                 ["id"] = aid.ToString(),
             });
-            
+
             var al = t["album"].ParseAlbum();
             //    Album.CreateOrUpdate(aid, a =>
             //{
