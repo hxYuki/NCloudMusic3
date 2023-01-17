@@ -25,9 +25,9 @@
             </StackPanel.Resources>
             <TextBlock Text="设置" Style="{ThemeResource TitleLargeTextBlockStyle}"/>
             <ScrollViewer HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" DataContext="{x:Bind SettingsVM}">
-                <StackPanel>
+                <StackPanel Spacing="16">
                     <Expander Header="播放设置">
-                        <StackPanel Spacing="16">
+                        <StackPanel Spacing="12">
                             <Grid>
                                 <TextBlock HorizontalAlignment="Left" Text="在线播放音质"/>
                                 <ComboBox HorizontalAlignment="Right" ItemsSource="{x:Bind MusicQualities}"
@@ -45,27 +45,33 @@
                         </StackPanel>
                     </Expander>
                     <Expander Header="存储设置">
-                        <ListView ItemsSource="{Binding LocalMusicFolders}" Height="200" Padding="10" CornerRadius="5"
-                                  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-                            <ListView.Header>
-                                <Grid>
-                                    <TextBlock Text="音乐库位置"/>
-                                    <Button Content="添加文件夹" HorizontalAlignment="Right" Tapped="AddMusicLibrary"/>
-                                </Grid>
-                            </ListView.Header>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <ListViewItem>
-                                        <Grid>
-                                            <TextBlock Text="{Binding}"/>
-                                            <Button>
-                                                <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe894;"/>
-                                            </Button>
-                                        </Grid>
-                                    </ListViewItem>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                        <Grid>
+                            <ListView x:Name="libList" ItemsSource="{Binding LocalMusicFolders}" MinHeight="200" Padding="10" CornerRadius="5"
+                                      SelectionMode="Single" SelectedIndex="0"
+                                      CanDragItems="True" CanReorderItems="True" AllowDrop="True"
+                                      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                                <ListView.Header>
+                                    <Grid>
+                                        <TextBlock Text="音乐库位置"/>
+                                        <Button Content="添加文件夹" HorizontalAlignment="Right" Tapped="AddMusicLibrary"/>
+                                    </Grid>
+                                </ListView.Header>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <ListViewItem>
+                                            <Grid Height="50">
+                                                <TextBlock Text="{Binding}"  VerticalAlignment="Center"/>
+                                                <Button HorizontalAlignment="Right" Tapped="RemoveMusicLibrary" Tag="{Binding}">
+                                                    <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xe894;"/>
+                                                </Button>
+                                            </Grid>
+                                        </ListViewItem>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <TextBlock Text="添加本地音乐库, 排在首位的文件夹将被作为下载目录。" Visibility="{Binding IsFolderListEmpty}"
+                                       HorizontalAlignment="Center" Foreground="{ThemeResource CaptionTextColor}"/>
+                        </Grid>
                     </Expander>
                 </StackPanel>
             </ScrollViewer>

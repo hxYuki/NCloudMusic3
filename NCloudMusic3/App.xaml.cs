@@ -38,6 +38,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json.Linq;
+using Windows.Storage.Pickers;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -208,6 +209,10 @@ namespace NCloudMusic3
 
             LoadSettings();
 
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Instance.m_window);
+            // Associate the HWND with the file picker
+            WinRT.Interop.InitializeWithWindow.Initialize(FolderPicker, hwnd);
+
             Login = new();
 
             var cookieCount = LocalSettings.Values["CookieCount"];
@@ -317,6 +322,7 @@ namespace NCloudMusic3
         internal MainWindow m_window;
         private static App instance;
 
+        public FolderPicker FolderPicker { get; private set; } = new ();
         public LoginDialog Login;
 
         internal UserProfile UserProf { get; private set; } = new();
