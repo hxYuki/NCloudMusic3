@@ -169,6 +169,8 @@ namespace NCloudMusic3
         public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
         public StorageFolder LocalCacheFolder = ApplicationData.Current.LocalCacheFolder;
 
+        Dictionary<string, string> LibPathToAccessToken = new();
+
         public Config AppConfig = new();
         //const string MusicCacheFile = "music.cache";
         //const string AlbumCacheFile = "album.cache";
@@ -253,10 +255,14 @@ namespace NCloudMusic3
                 AppConfig = Config.Default;
                 SaveConfig();
             }
+            var at = LocalSettings.Values["AccessTokens"];
+            if(at is string tokens)
+                LibPathToAccessToken = JsonSerializer.Deserialize<Dictionary<string, string>>(tokens);
         }
         public void SaveConfig()
         {
             LocalSettings.Values["Settings"] = JsonSerializer.Serialize(AppConfig);
+            LocalSettings.Values["AccessTokens"] = JsonSerializer.Serialize(LibPathToAccessToken);
         }
         private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
@@ -313,10 +319,43 @@ namespace NCloudMusic3
         public async Task SaveCache()
         {
             await Music.SaveCache(LocalCacheFolder);
+
+            //JsonSerializer.Serialize(LocalMusicList);
         }
         public async Task LoadCache()
         {
             await Music.LoadCache(LocalCacheFolder);
+
+            //LocalMusicList = JsonSerializer.Deserialize<Dictionary<string, Music>>
+        }
+
+        public void AddMusicLibrary(StorageFolder folder)
+        {
+            LibPathToAccessToken[folder.Path] = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(folder);
+            folder.TryGetChangeTracker().Enable();
+        }
+
+        public async Task<StorageFolder> GetMusicLibrary(string path)
+        {
+            if (LibPathToAccessToken.TryGetValue(path, out var token))
+            {
+                return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(token);
+            }
+            throw new ArgumentException("no permission on this path", nameof(path));
+        }
+
+        public async void RemoveMusicLibrary(string path)
+        {
+            if(LibPathToAccessToken.TryGetValue(path, out var token))
+            {
+                var f = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(token);
+                f.TryGetChangeTracker().Reset();
+                Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Remove(token);
+            }
+            else
+            {
+                throw new ArgumentException("no permission on this path", nameof(path));
+            }
         }
 
         internal MainWindow m_window;
@@ -509,12 +548,18 @@ namespace NCloudMusic3
 
         Frame rootFrame = null;
         public void SetFrame(Frame frame) { rootFrame = frame; }
+        public void PageNavigateBack()
+        {
+            if(rootFrame.CanGoBack)
+                rootFrame.GoBack();
+        }
         public void PageNavigateTo(Type type, object parameter = null)
         {
             if (parameter is null)
                 rootFrame.Navigate(type);
             else rootFrame.Navigate(type, parameter);
         }
+
 
         public void NavigateToAlbum(ulong albumId)
         {

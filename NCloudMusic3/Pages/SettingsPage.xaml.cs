@@ -84,20 +84,8 @@ namespace NCloudMusic3.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            //SettingsVM.SetModel(App.Instance.AppConfig);
             SettingsVM.LocalMusicFolders.AddRange(App.Instance.AppConfig.LocalMusicFolders);
-            //SettingsVM.LocalMusicFolders.CollectionChanged += (s, a) =>
-            //{
-                
-                //if (a.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-                //{
-                //    libList.DeselectRange(new(0, uint.MaxValue));
-
-                //    libList.SelectedIndex = 0;
-                //}
-                //if((s as IEnumerable<string>).Count() > 0)
-                //    libList.SelectedItem = (s as IEnumerable<string>).First();
-            //};
+            
         }
 
         private async void AddMusicLibrary(object sender, TappedRoutedEventArgs e)
@@ -106,6 +94,7 @@ namespace NCloudMusic3.Pages
             if (folder != null)
             {
                 SettingsVM.LocalMusicFolders.Add(folder.Path);
+                App.Instance.AddMusicLibrary(folder);
             }
         }
 
@@ -114,6 +103,7 @@ namespace NCloudMusic3.Pages
             if ((sender as Button).Tag is string st)
             {
                 SettingsVM.LocalMusicFolders.Remove(st);
+                App.Instance.RemoveMusicLibrary(st);
             }
         }
 

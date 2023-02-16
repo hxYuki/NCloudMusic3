@@ -1,0 +1,72 @@
+<!-- Copyright (c) Microsoft Corporation and Contributors. -->
+<!-- Licensed under the MIT License. -->
+
+<Page
+    x:Class="NCloudMusic3.Pages.LocalPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NCloudMusic3.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:NCloudMusic3.Controls"
+    xmlns:models="using:NCloudMusic3.Models"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Loaded="Page_Loaded">
+
+    <Grid Padding="12" DataContext="{x:Bind LocalPageData}">
+
+        <Pivot>
+            <Pivot.LeftHeader>
+                <StackPanel>
+                    <TextBlock Text="本地音乐" Style="{ThemeResource TitleLargeTextBlockStyle}"/>
+                    
+                </StackPanel>
+            </Pivot.LeftHeader>
+            <Pivot.RightHeader>
+                <StackPanel Orientation="Horizontal">
+                    <Button Click="ScanButton_Click" IsEnabled="{Binding NotScanning}">
+                        <Grid>
+                            <TextBlock Text="扫描" Visibility="{Binding NotScanning}"/>
+                            <ProgressRing Height="5" Width="5" Visibility="{Binding IsScanning}"/>
+                        </Grid>
+                    </Button>
+                    <Button Content="添加文件夹"/>
+                </StackPanel>
+            </Pivot.RightHeader>
+
+            <PivotItem Header="歌曲">
+                <ListView ItemsSource="{Binding LocalMusic}">
+                    <ListView.Header>
+                        <Grid>
+                            <TextBlock Text="{Binding LocalMusic.Count}"/>
+                        </Grid>
+                    </ListView.Header>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Music">
+                            <ListViewItem>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}"/>
+                                    <TextBlock Text="{Binding LocalPath}"/>
+                                </StackPanel>
+                            </ListViewItem>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+            <PivotItem Header="专辑"/>
+            <PivotItem Header="艺术家"/>
+            <PivotItem Header="文件夹"/>
+        </Pivot>
+
+        <StackPanel Visibility="{Binding IsLocalMusicEmpty}" Orientation="Horizontal"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" >
+            <TextBlock Text="暂无音乐，" Foreground="{ThemeResource CaptionTextColor}"/>
+            <HyperlinkButton Foreground="{ThemeResource CaptionTextColor}" Click="ScanButton_Click" IsEnabled="{Binding NotScanning}"
+                             Padding="0" Margin="1,-1,1,0">
+                <TextBlock><Underline>扫描</Underline></TextBlock>
+            </HyperlinkButton>
+            <TextBlock Text="以开始添加" Foreground="{ThemeResource CaptionTextColor}"/>
+        </StackPanel>
+    </Grid>
+</Page>

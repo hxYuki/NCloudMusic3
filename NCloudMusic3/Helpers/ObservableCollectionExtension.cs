@@ -48,4 +48,12 @@ namespace NCloudMusic3.Helpers
             }
         }
     }
+
+    public class PaginatedObservableCollection<T> : RangeObservableCollection<T>
+    {
+        public int Page { get; }
+        public int PageLimit { get; init; }
+        public void Next() { }
+        public void Previous() { }
+    }
 }

@@ -20,6 +20,7 @@
     <None Remove="Controls\MusicList.xaml" />
     <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
+    <None Remove="Pages\LocalPage.xaml" />
     <None Remove="Pages\MainPage.xaml" />
     <None Remove="Pages\PlaylistDetailPage.xaml" />
     <None Remove="Pages\SettingsPage.xaml" />
@@ -37,11 +38,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
+    <PackageReference Include="DotNext" Version="4.10.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
     <PackageReference Include="PInvoke.Kernel32" Version="0.7.124" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="PInvoke.Windows.Core" Version="0.7.124" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -58,6 +61,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCMAPI\NCMAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\LocalPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\EnumComboBox.xaml">

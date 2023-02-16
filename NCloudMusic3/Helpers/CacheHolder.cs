@@ -1,4 +1,4 @@
-﻿using NCloudMusic3.Models;
+using NCloudMusic3.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -54,7 +54,7 @@ namespace NCloudMusic3.Helpers
 
             await FileIO.WriteTextAsync(cachefile, JsonSerializer.Serialize(cache, options));
         }
-        static JsonSerializerOptions options = new () { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
+        protected static JsonSerializerOptions options = new () { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
         public static async Task LoadCache(StorageFolder cacheFolder)
         {
             var cachefile = await cacheFolder.TryGetItemAsync(typeof(TValue).Name + ".t.cache");
