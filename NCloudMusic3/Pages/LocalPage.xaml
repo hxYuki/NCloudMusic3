@@ -10,17 +10,47 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:NCloudMusic3.Controls"
     xmlns:models="using:NCloudMusic3.Models"
+    xmlns:h="using:NCloudMusic3.Helpers"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="Page_Loaded">
 
     <Grid Padding="12" DataContext="{x:Bind LocalPageData}">
-
-        <Pivot>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.Resources>
+            <CollectionViewSource x:Name="MusicGroupSource" Source="{x:Bind Groups}" IsSourceGrouped="True" ItemsPath="Items"/>
+            <DataTemplate x:Key="MusicZoomedInItemTemplate" x:DataType="models:Music">
+                <ListViewItem ToolTipService.ToolTip="{Binding LocalPath}">
+                    <StackPanel Margin="5">
+                        <TextBlock Text="{Binding Title}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNotNullNorEmpty(Title), Mode=OneWay}"
+                                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        <TextBlock Text="{Binding LocalPath}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNullOrEmpty(Title), Mode=OneWay}"
+                                   Style="{ThemeResource SubtitleTextBlockStyle}" Foreground="{ThemeResource CaptionTextColor}"/>
+                        <TextBlock Text="{Binding Album.Name ,FallbackValue='暂无信息',TargetNullValue='暂无专辑信息'}"
+                                   Foreground="{ThemeResource DimCaptionTextColor}"/>
+                        <TextBlock Text="{x:Bind h:XamlHelper.JoinArtists(Artists), Mode=OneWay, FallbackValue='暂无信息',TargetNullValue='暂无歌手信息'}"
+                                   Foreground="{ThemeResource DimCaptionTextColor}"/>
+                        
+                    </StackPanel>
+                </ListViewItem>
+            </DataTemplate>
+            <DataTemplate x:Key="ZoomedInHeaderTemplate" x:DataType="local:GroupInfoList">
+                <Border AutomationProperties.AccessibilityView="Raw">
+                    <TextBlock Text="{x:Bind Key, TargetNullValue='* 未知'}" Style="{ThemeResource TitleTextBlockStyle}" AutomationProperties.AccessibilityView="Raw"/>
+                </Border>
+            </DataTemplate>
+            <DataTemplate x:Key="ZoomedOutItemTemplate" x:DataType="ICollectionViewGroup">
+                <TextBlock Text="{x:Bind ((local:GroupInfoList)Group).Key, TargetNullValue='* 未知'}"
+                           Style="{StaticResource SubtitleTextBlockStyle}" TextWrapping="Wrap"/>
+            </DataTemplate>
+        </Grid.Resources>
+        <Pivot Grid.Row="0" PivotItemLoading="Pivot_PivotItemLoading">
             <Pivot.LeftHeader>
                 <StackPanel>
                     <TextBlock Text="本地音乐" Style="{ThemeResource TitleLargeTextBlockStyle}"/>
-                    
                 </StackPanel>
             </Pivot.LeftHeader>
             <Pivot.RightHeader>
@@ -35,31 +65,29 @@
                 </StackPanel>
             </Pivot.RightHeader>
 
-            <PivotItem Header="歌曲">
-                <ListView ItemsSource="{Binding LocalMusic}">
-                    <ListView.Header>
-                        <Grid>
-                            <TextBlock Text="{Binding LocalMusic.Count}"/>
-                        </Grid>
-                    </ListView.Header>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:Music">
-                            <ListViewItem>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}"/>
-                                    <TextBlock Text="{Binding LocalPath}"/>
-                                </StackPanel>
-                            </ListViewItem>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+            <PivotItem Header="歌曲" Tag="content">
             </PivotItem>
-            <PivotItem Header="专辑"/>
-            <PivotItem Header="艺术家"/>
-            <PivotItem Header="文件夹"/>
+            <PivotItem Header="专辑" Tag="album">
+            </PivotItem>
+            <PivotItem Header="艺术家" Tag="artist"/>
+            <PivotItem Header="库" Tag="library"/>
         </Pivot>
-
-        <StackPanel Visibility="{Binding IsLocalMusicEmpty}" Orientation="Horizontal"
+        <SemanticZoom Grid.Row="1">
+            <SemanticZoom.ZoomedInView>
+                <ListView ItemsSource="{x:Bind MusicGroupSource.View, Mode=OneWay}"
+                                  ItemTemplate="{StaticResource MusicZoomedInItemTemplate}">
+                    <ListView.GroupStyle>
+                        <GroupStyle HeaderTemplate="{StaticResource ZoomedInHeaderTemplate}">
+                        </GroupStyle>
+                    </ListView.GroupStyle>
+                </ListView>
+            </SemanticZoom.ZoomedInView>
+            <SemanticZoom.ZoomedOutView>
+                <ListView ItemsSource="{x:Bind MusicGroupSource.View.CollectionGroups}" ItemTemplate="{StaticResource ZoomedOutItemTemplate}">
+                </ListView>
+            </SemanticZoom.ZoomedOutView>
+        </SemanticZoom>
+        <StackPanel Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding IsLocalMusicEmpty}" Orientation="Horizontal"
                     HorizontalAlignment="Center" VerticalAlignment="Center" >
             <TextBlock Text="暂无音乐，" Foreground="{ThemeResource CaptionTextColor}"/>
             <HyperlinkButton Foreground="{ThemeResource CaptionTextColor}" Click="ScanButton_Click" IsEnabled="{Binding NotScanning}"

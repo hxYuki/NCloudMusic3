@@ -26,7 +26,7 @@ using NCloudMusic3.ViewModels;
 
 namespace NCloudMusic3.Pages
 {
-    
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -40,7 +40,7 @@ namespace NCloudMusic3.Pages
         {
             this.InitializeComponent();
 
-            
+
 
             ListMusicId.CollectionChanged += async (e, s) =>
             {
@@ -61,7 +61,7 @@ namespace NCloudMusic3.Pages
 
             if (e.Parameter is ulong pid)
             {
-                
+
                 var pl = await App.Instance.GetPlaylistInfo(pid);
                 MusicListInfo.SetModel(pl);
 
@@ -75,7 +75,7 @@ namespace NCloudMusic3.Pages
             ReplaceMusicList(aid, ls);
             async void ReplaceMusicList(ulong aid, List<ulong> ls)
             {
-                // ObservableCollection ËÆºõÐÐÎªÓë Set Ò»ÖÂ¡£
+                // ObservableCollection ä¼¼ä¹Žè¡Œä¸ºä¸Ž Set ä¸€è‡´ã€‚
                 if (ListMusicId.SequenceEqual(ls))
                 {
                     return;
@@ -94,23 +94,6 @@ namespace NCloudMusic3.Pages
                 }
             }
         }
-
-        
-
-        
     }
-    public static class H
-    {
-        public static bool CollectionToVisibility<T>(IList<T> ls) => ls.Count > 0;
-        public static bool CollectionToVisibility<T>(T[] ls) => ls.Length > 0;
-        public static string SecondsToString(double milliseconds)
-        {
-            var ts = TimeSpan.FromMilliseconds(milliseconds);
-            if (ts.TotalHours > 1)
-                return ts.ToString("g");
-            else return ts.ToString(@"mm\:ss");
-        }
-        public static bool Reverse(bool boolean) => !boolean;
-
-    }
+    
 }

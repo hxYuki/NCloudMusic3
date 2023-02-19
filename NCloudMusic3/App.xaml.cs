@@ -269,7 +269,7 @@ namespace NCloudMusic3
             args.Cancel = true;
             SaveConfig();
             await SavePlayingStatus();
-
+            await SaveCache();
             m_window.Close();
         }
 

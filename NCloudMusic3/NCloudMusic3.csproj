@@ -44,6 +44,7 @@
     <PackageReference Include="PInvoke.Kernel32" Version="0.7.124" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="PInvoke.Windows.Core" Version="0.7.124" />
+    <PackageReference Include="PinYinConverterCore" Version="1.0.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>

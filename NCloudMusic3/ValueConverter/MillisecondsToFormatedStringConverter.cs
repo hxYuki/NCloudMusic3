@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace NCloudMusic3.ValueConverter
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             double milliseconds = (double)value;
-            return Pages.H.SecondsToString(milliseconds);
+            return Helpers.XamlHelper.SecondsToString(milliseconds);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

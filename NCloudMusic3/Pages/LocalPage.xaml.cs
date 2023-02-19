@@ -24,6 +24,10 @@ using Windows.Media.Core;
 using System.Text.Json;
 using Windows.Devices.PointOfService;
 using DotNext;
+using System.Collections.ObjectModel;
+using Microsoft.International.Converters.PinYinConverter;
+using DotNext.Collections.Generic;
+using static NCloudMusic3.Pages.LocalPage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -69,6 +73,28 @@ namespace NCloudMusic3.Pages
         }
     }
 
+    public class GroupInfoList
+    {
+        public GroupInfoList(IEnumerable<object> items)
+        {
+            Items = new(items);
+        }
+        public KeyWrapper Key { get; set; }
+        public ObservableCollection<object> Items { get; set; }
+        public override string ToString()
+        {
+            return Key?.ToString();
+        }
+
+        public static ObservableCollection<GroupInfoList> From(IEnumerable<IGrouping<KeyWrapper, object>> items)
+        {
+            return new ObservableCollection<GroupInfoList>(items.Select(group => new GroupInfoList(group) { Key = group.Key }));
+        }
+
+        public static Comparison<GroupInfoList> Comparison=>(a,b)=> a.Key.CompareTo(b.Key);
+    }
+
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -88,6 +114,7 @@ namespace NCloudMusic3.Pages
 
             LocalPageData.LocalMusic.CollectionChanged += (s, e) =>
             {
+                // TODO: 这个行为可以集成进集合方法
                 if ((s as RangeObservableCollection<Music>).Count > 0)
                     cacheLimit.Touch();
             };
@@ -97,6 +124,15 @@ namespace NCloudMusic3.Pages
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             LocalPageData.LocalMusicFolders.AddRange(App.Instance.AppConfig.LocalMusicFolders);
+            LocalPageData.LocalMusic.CollectionChanged += (s, e) =>
+            {
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                {
+                    GroupUpdate(GroupInfoList.From(groupUpdater(e.NewItems.Cast<Music>())));
+                }
+                else
+                    GroupUpdate();
+            };
 
             if (LocalPageData.IsFolderListEmpty)
             {
@@ -118,14 +154,38 @@ namespace NCloudMusic3.Pages
             if (!LocalPageData.IsFolderListEmpty)
             {
                 //GetChanges();
-                GetLocalMusic();
+                await GetLocalMusic();
             }
         }
+
+        private void GroupUpdate(IEnumerable<GroupInfoList> increments = null)
+        {
+            if (increments is null)
+            {
+                Groups.Clear();
+                Groups.AddRange(GroupInfoList.From(groupUpdater(LocalPageData.LocalMusic)));
+            }
+            else
+            {
+                foreach (var i in increments)
+                {
+                    if (Groups.Where(g => g.Key == i.Key).FirstOrNone().TryGet(out var group))
+                    {
+                        group.Items.AddAll(i.Items);
+                    }
+                    else
+                    {
+                        Groups.InsertOrdered(i, GroupInfoList.Comparison);
+                    }
+                }
+            }
+        }
+
         SortedSet<string> musicFiles = new();
         private void ApplyMusicChanges(IEnumerable<string> files, bool adding = true)
         {
-
             LocalPageData.IsScanning = true;
+            List<string> failures = new();
             using (LocalPageData.LocalMusic.BatchUpdate())
             {
                 if (!adding)
@@ -147,10 +207,18 @@ namespace NCloudMusic3.Pages
                             LocalPageData.LocalMusic.Add(m);
                             musicFiles.Add(f);
                         }
+                        else
+                        {
+                            failures.Add(f);
+                        }
 
                     }
                 }
+            }
 
+            if (failures.Count > 0)
+            {
+                App.Instance.SendTip("以下音乐添加失败，可能是文件损坏", string.Join("\n", failures));
             }
             LocalPageData.IsScanning = false;
 
@@ -159,6 +227,7 @@ namespace NCloudMusic3.Pages
         private async Task ApplyAsyncMusicChanges(Task<IEnumerable<StorageFile>> files)
         {
             LocalPageData.IsScanning = true;
+            List<string> failures = new();
             foreach (var file in await files)
             {
                 // await Task.Yield() 并不能防止页面卡死
@@ -172,13 +241,21 @@ namespace NCloudMusic3.Pages
                     musicFiles.Add(f);
                     LocalPageData.LocalMusic.Add(m);
                 }
+                else
+                {
+                    failures.Add(f);
+                }
 
+            }
+            if (failures.Count > 0)
+            {
+                App.Instance.SendTip("以下音乐添加失败，可能是文件损坏", string.Join("\n", failures));
             }
             LocalPageData.IsScanning = false;
 
         }
 
-        private async void GetLocalMusic()
+        private async Task GetLocalMusic()
         {
             // 查看缓存
             var ls = await App.Instance.LocalCacheFolder.TryGetItemAsync("list.local");
@@ -190,8 +267,10 @@ namespace NCloudMusic3.Pages
 
                 if (toAdd.Count > 0)
                 {
-
-                    ApplyMusicChanges(toAdd);
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        ApplyMusicChanges(toAdd);
+                    });
 
                     // 检查changes 
                     CollectChanges();
@@ -254,7 +333,10 @@ namespace NCloudMusic3.Pages
                     {
                         if (change.ChangeType == StorageLibraryChangeType.ChangeTrackingLost)
                         {
-                            App.Instance.SendTip("获取变更失败", "文件变更过期，正在重新扫描文件夹。");
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                App.Instance.SendTip("获取变更失败", $"文件变更过期，正在重新扫描文件夹。\n{f}");
+                            });
                             changeTracker.Reset();
 
                             DispatcherQueue.TryEnqueue(() =>
@@ -321,8 +403,8 @@ namespace NCloudMusic3.Pages
                     if (changed)
                         DispatcherQueue.TryEnqueue(() =>
                          {
-                             ApplyMusicChanges(toAdd);
                              ApplyMusicChanges(toRemove, false);
+                             ApplyMusicChanges(toAdd);
                          });
 
                     await Task.WhenAll(rescanTask);
@@ -332,6 +414,8 @@ namespace NCloudMusic3.Pages
                         GC.Collect();
                     }
                     await changeReader.AcceptChangesAsync();
+
+                    //App.Instance.SendTip($"更新音乐库 {f} 成功", "");
                 });
 
             }
@@ -340,6 +424,51 @@ namespace NCloudMusic3.Pages
         private void ScanButton_Click(object sender, RoutedEventArgs e)
         {
             FullScan();
+
+        }
+        RangeObservableCollection<GroupInfoList> Groups { get; set; } = new();
+        Func<IEnumerable<Music>, IEnumerable<IGrouping<KeyWrapper, Music>>> groupUpdater;
+        public record KeyWrapper(int Priority, string Key) : IComparable<KeyWrapper>
+        {
+            public int CompareTo(KeyWrapper other)
+            {
+                if (Priority.Equals(other.Priority)) return (Key ?? "").CompareTo(other.Key);
+                return Priority.CompareTo(other.Priority);
+            }
+
+            public override string ToString()
+            {
+                return Key;
+            }
+        }
+        private void Pivot_PivotItemLoading(Pivot sender, PivotItemEventArgs args)
+        {
+            switch (args.Item.Tag)
+            {
+                case "content":
+                    groupUpdater = (musics) => musics.GroupBy(m =>
+                    {
+                        var first = (m.Title ?? "").FirstOrDefault();
+                        if (ChineseChar.IsValidChar(first))
+                            return new KeyWrapper(1, $"拼音 {new ChineseChar(first).Pinyins[0][0]}");
+                        else if (char.IsAsciiLetter(first))
+                            return new KeyWrapper(3, $"{char.ToUpper(first)}");
+                        else if (char.IsDigit(first))
+                            return new KeyWrapper(0, "#");
+                        else if (char.IsSymbol(first))
+                            return new KeyWrapper(0, "&");
+                        else return new KeyWrapper(2, "...");
+                    }).OrderBy(g => g.Key);
+                    break;
+                case "album":
+                    groupUpdater = (musics) => musics.GroupBy(m => new KeyWrapper(0, m.Album.Name)).OrderBy(g => g.Key);
+                    break;
+                case "artist":
+                    break;
+                case "library":
+                    break;
+            }
+            GroupUpdate();
         }
 
     }

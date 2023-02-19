@@ -79,8 +79,8 @@ namespace NCloudMusic3.Models
                 {
                     LocalPath = path,
                     Title = tagFile.Tag.Title,
-                    Album = new() { Name = tagFile.Tag.Album },
-                    Artists = tagFile.Tag.AlbumArtists.Select(ar => new Artist() { Name = ar }).ToArray(),
+                    Album = new() { Name = tagFile.Tag.Album.Trim() },
+                    Artists = tagFile.Tag.Artists.Select(ar => new Artist() { Name = ar.Trim() }).ToArray(),
                 };
 
                 LocalOnlyCache[path] = t;
