@@ -42,10 +42,8 @@ using Windows.Storage.Pickers;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace NCloudMusic3
-{
-    public class PlayingInfomation : NotifyPropertyChanged
-    {
+namespace NCloudMusic3 {
+    public class PlayingInfomation : NotifyPropertyChanged {
         private RangeObservableCollection<Music> playList = new();
         private int playingIndex;
         private Music currentPlay;
@@ -57,105 +55,77 @@ namespace NCloudMusic3
         private double position;
         private bool stopAfterThisPiece;
 
-        public RangeObservableCollection<Music> PlayList
-        {
-            get => playList; set
-            {
+        public RangeObservableCollection<Music> PlayList {
+            get => playList; set {
                 playList = value; RaisePropertyChanged();
             }
         }
 
-        public int PlayingIndex
-        {
-            get => playingIndex; set
-            {
+        public int PlayingIndex {
+            get => playingIndex; set {
                 playingIndex = value; RaisePropertyChanged();
             }
         }
-        public Music CurrentPlay
-        {
-            get => currentPlay; set
-            {
+        public Music CurrentPlay {
+            get => currentPlay; set {
                 currentPlay = value; RaisePropertyChanged();
             }
         }
-        public bool IsPlaying
-        {
-            get => isPlaying; set
-            {
+        public bool IsPlaying {
+            get => isPlaying; set {
                 isPlaying = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsPaused));
             }
         }
-        public bool IsPaused
-        {
-            get => !isPlaying; set
-            {
+        public bool IsPaused {
+            get => !isPlaying; set {
                 isPlaying = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsPlaying));
             }
         }
-        public bool IsShuffled
-        {
-            get => isShuffled; set
-            {
+        public bool IsShuffled {
+            get => isShuffled; set {
                 isShuffled = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotShuffled));
             }
         }
-        public bool NotShuffled
-        {
-            get => !isShuffled; set
-            {
+        public bool NotShuffled {
+            get => !isShuffled; set {
                 isShuffled = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsShuffled));
             }
         }
-        public bool IsLooping
-        {
-            get => isLooping; set
-            {
+        public bool IsLooping {
+            get => isLooping; set {
                 isLooping = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotLooping));
             }
         }
-        public bool NotLooping
-        {
-            get => !isLooping; set
-            {
+        public bool NotLooping {
+            get => !isLooping; set {
                 isLooping = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsLooping));
             }
         }
-        public bool IsLiked
-        {
-            get => isLiked; set
-            {
+        public bool IsLiked {
+            get => isLiked; set {
                 isLiked = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(NotLiked));
             }
         }
-        public bool NotLiked
-        {
-            get => !isLiked; set
-            {
+        public bool NotLiked {
+            get => !isLiked; set {
                 isLiked = !value; RaisePropertyChanged(); RaisePropertyChanged(nameof(IsLiked));
             }
         }
 
-        public bool StopAfterThisPiece
-        {
-            get => stopAfterThisPiece; set
-            {
+        public bool StopAfterThisPiece {
+            get => stopAfterThisPiece; set {
                 stopAfterThisPiece = value; RaisePropertyChanged();
             }
         }
 
-        public double Duration
-        {
-            get => duration; set
-            {
+        public double Duration {
+            get => duration; set {
                 duration = value;
                 RaisePropertyChanged();
             }
         }
-        public double Position
-        {
-            get => position; set
-            {
+        public double Position {
+            get => position; set {
                 position = value;
                 RaisePropertyChanged();
             }
@@ -164,8 +134,7 @@ namespace NCloudMusic3
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    public partial class App : Application
-    {
+    public partial class App : Application {
         public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
         public StorageFolder LocalCacheFolder = ApplicationData.Current.LocalCacheFolder;
 
@@ -177,10 +146,8 @@ namespace NCloudMusic3
 
         public CloudMusicApi api;
 
-        public static App Instance
-        {
-            get
-            {
+        public static App Instance {
+            get {
                 if (instance == null)
                     instance = Application.Current as App;
                 return instance;
@@ -191,8 +158,7 @@ namespace NCloudMusic3
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
-        public App()
-        {
+        public App() {
             this.InitializeComponent();
 
 
@@ -203,8 +169,7 @@ namespace NCloudMusic3
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-        {
+        protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args) {
             m_window = new MainWindow();
             m_window.Activate();
             m_window.appWindow.Closing += AppWindow_Closing;
@@ -218,12 +183,10 @@ namespace NCloudMusic3
             Login = new();
 
             var cookieCount = LocalSettings.Values["CookieCount"];
-            if (cookieCount != null)
-            {
+            if (cookieCount != null) {
                 var cookies = new CookieCollection();
                 JsonSerializerOptions serdeOptions = new() { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
-                foreach (var i in 0..(int)cookieCount)
-                {
+                foreach (var i in 0..(int)cookieCount) {
                     cookies.Add(JsonSerializer.Deserialize<Cookie>(LocalSettings.Values["Cookies-" + i] as string, serdeOptions));
                 }
                 api = new CloudMusicApi(cookies);
@@ -236,36 +199,30 @@ namespace NCloudMusic3
             await LoadCache();
 
             LoadPlayingStatus();
-            LikeSongList.CollectionChanged += async (s, e) =>
-            {
+            LikeSongList.CollectionChanged += async (s, e) => {
                 await PrepareMusic(s as IEnumerable<ulong>);
             };
 
 
         }
-        private void LoadSettings()
-        {
+        private void LoadSettings() {
             var settings = LocalSettings.Values["Settings"];
-            if (settings is string config)
-            {
+            if (settings is string config) {
                 AppConfig = JsonSerializer.Deserialize<Config>(config);
             }
-            else
-            {
+            else {
                 AppConfig = Config.Default;
                 SaveConfig();
             }
             var at = LocalSettings.Values["AccessTokens"];
-            if(at is string tokens)
+            if (at is string tokens)
                 LibPathToAccessToken = JsonSerializer.Deserialize<Dictionary<string, string>>(tokens);
         }
-        public void SaveConfig()
-        {
+        public void SaveConfig() {
             LocalSettings.Values["Settings"] = JsonSerializer.Serialize(AppConfig);
             LocalSettings.Values["AccessTokens"] = JsonSerializer.Serialize(LibPathToAccessToken);
         }
-        private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
-        {
+        private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args) {
             args.Cancel = true;
             SaveConfig();
             await SavePlayingStatus();
@@ -273,10 +230,8 @@ namespace NCloudMusic3
             m_window.Close();
         }
 
-        public async Task SavePlayingStatus()
-        {
-            var d = new JsonObject
-            {
+        public async Task SavePlayingStatus() {
+            var d = new JsonObject {
                 ["playlist"] = new JsonArray(Playing.PlayList.Select(x => JsonValue.Create(x.Id)).ToArray()),
                 ["playingIndex"] = Playing.PlayingIndex,
                 ["random"] = Playing.IsShuffled,
@@ -287,73 +242,63 @@ namespace NCloudMusic3
             var f = await LocalCacheFolder.CreateFileAsync("playing.cache", CreationCollisionOption.ReplaceExisting);
             await FileIO.WriteTextAsync(f, d.ToString());
         }
-        public async void LoadPlayingStatus()
-        {
+        public async void LoadPlayingStatus() {
             var f = await LocalCacheFolder.TryGetItemAsync("playing.cache");
             if (f == null)
                 return;
 
             JsonNode jd;
-            try
-            {
+            try {
                 var d = await File.ReadAllTextAsync(f.Path);
                 jd = JsonObject.Parse(d);
             }
-            catch
-            {
+            catch {
                 return;
             }
-            Playing.With(e =>
-            {
+            Playing.With(e => {
                 e.PlayList.Clear();
                 e.PlayList.AddRange(jd["playlist"].Deserialize<List<ulong>>().Select(id => Music.Get(id)).ToList());
                 e.PlayingIndex = jd["playingIndex"].GetValue<int>();
                 e.IsShuffled = jd["random"].GetValue<bool>();
                 e.IsLooping = jd["loop"].GetValue<bool>();
                 e.IsLiked = jd["isLiked"].GetValue<bool>();
-                e.CurrentPlay = e.PlayList[e.PlayingIndex];
-
-                SetPlayerSource(e.CurrentPlay);
+                if (e.PlayList.Count > 0) {
+                    e.CurrentPlay = e.PlayList[e.PlayingIndex];
+                }
+                if (e.CurrentPlay is not null)
+                    SetPlayerSource(e.CurrentPlay);
             });
         }
-        public async Task SaveCache()
-        {
+        public async Task SaveCache() {
             await Music.SaveCache(LocalCacheFolder);
 
             //JsonSerializer.Serialize(LocalMusicList);
         }
-        public async Task LoadCache()
-        {
+        public async Task LoadCache() {
             await Music.LoadCache(LocalCacheFolder);
 
             //LocalMusicList = JsonSerializer.Deserialize<Dictionary<string, Music>>
         }
 
-        public void AddMusicLibrary(StorageFolder folder)
-        {
+        public void AddMusicLibrary(StorageFolder folder) {
             LibPathToAccessToken[folder.Path] = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(folder);
             folder.TryGetChangeTracker().Enable();
         }
 
-        public async Task<StorageFolder> GetMusicLibrary(string path)
-        {
-            if (LibPathToAccessToken.TryGetValue(path, out var token))
-            {
+        public async Task<StorageFolder> GetMusicLibrary(string path) {
+            if (LibPathToAccessToken.TryGetValue(path, out var token)) {
                 return await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(token);
             }
             throw new ArgumentException("no permission on this path", nameof(path));
         }
 
-        public async void RemoveMusicLibrary(string path)
-        {
-            if(LibPathToAccessToken.TryGetValue(path, out var token))
-            {
+        public async void RemoveMusicLibrary(string path) {
+            if (LibPathToAccessToken.TryGetValue(path, out var token)) {
                 var f = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(token);
                 f.TryGetChangeTracker().Reset();
                 Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Remove(token);
             }
-            else
-            {
+            else {
                 throw new ArgumentException("no permission on this path", nameof(path));
             }
         }
@@ -361,7 +306,7 @@ namespace NCloudMusic3
         internal MainWindow m_window;
         private static App instance;
 
-        public FolderPicker FolderPicker { get; private set; } = new ();
+        public FolderPicker FolderPicker { get; private set; } = new();
         public LoginDialog Login;
 
         internal UserProfile UserProf { get; private set; } = new();
@@ -372,17 +317,13 @@ namespace NCloudMusic3
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
-        public async Task<List<Music>> GetOrRequestNewMusic(IEnumerable<ulong> ids)
-        {
+        public async Task<List<Music>> GetOrRequestNewMusic(IEnumerable<ulong> ids) {
             var list = new List<Music>();
-            foreach (var id in ids)
-            {
-                if (Music.TryGet(id, out Music value))
-                {
+            foreach (var id in ids) {
+                if (Music.TryGet(id, out Music value)) {
                     list.Add(value);
                 }
-                else
-                {
+                else {
                     list.Add((await FetchMusicNotCached(new[] { id }))[0]);
                 }
             }
@@ -407,12 +348,10 @@ namespace NCloudMusic3
         // TODO 或许应该将原播放列表加入Playing并在关闭时保存
         List<Music> OriginMusicList = new();
 
-        public void SetPlayList(IEnumerable<Music> list)
-        {
+        public void SetPlayList(IEnumerable<Music> list) {
             Playing.PlayList.Clear();
 
-            if (Playing.IsShuffled)
-            {
+            if (Playing.IsShuffled) {
                 OriginMusicList = list.ToList();
 
                 Playing.PlayList.AddRange(list.GetShuffled());
@@ -420,30 +359,25 @@ namespace NCloudMusic3
             else
                 Playing.PlayList.AddRange(list);
         }
-        public void NextMusic()
-        {
+        public void NextMusic() {
             if (Playing.CurrentPlay is null || Playing.PlayList.Count == 0) return;
 
             PlayMusic(Playing.PlayList[Playing.PlayList.RollingNextIndex(Playing.PlayingIndex)]);
         }
-        public void PreviousMusic()
-        {
+        public void PreviousMusic() {
             if (Playing.CurrentPlay is null || Playing.PlayList.Count == 0) return;
 
             PlayMusic(Playing.PlayList[Playing.PlayList.RollingPreviousIndex(Playing.PlayingIndex)]);
         }
-        public void InsertToNext(Music music)
-        {
-            if (Playing.PlayList.Contains(music))
-            {
+        public void InsertToNext(Music music) {
+            if (Playing.PlayList.Contains(music)) {
                 Playing.PlayList.Move(Playing.PlayList.IndexOf(music), Playing.PlayingIndex + 1);
             }
             else Playing.PlayList.Insert(Playing.PlayingIndex + 1, music);
 
             Playing.PlayingIndex = Playing.PlayList.IndexOf(Playing.CurrentPlay);
         }
-        public void TogglePause()
-        {
+        public void TogglePause() {
             if (Playing.CurrentPlay is null) return;
             if (Playing.IsPlaying)
                 Player.Pause();
@@ -452,16 +386,13 @@ namespace NCloudMusic3
         }
         public void ToggleLoop() { }//TODO 待实现
         public void ToggleStopAfterwards() { }//TODO 待实现
-        public void ToggleShuffled()
-        {
-            if (Playing.IsShuffled)
-            {
+        public void ToggleShuffled() {
+            if (Playing.IsShuffled) {
                 Playing.PlayList.Clear();
                 Playing.PlayList.AddRange(OriginMusicList);
                 Playing.IsShuffled = false;
             }
-            else
-            {
+            else {
                 OriginMusicList = Playing.PlayList.ToList();
                 Playing.PlayList.Clear();
                 Playing.PlayList.AddRange(OriginMusicList.GetShuffled());
@@ -471,52 +402,43 @@ namespace NCloudMusic3
             Playing.PlayingIndex = Playing.PlayList.IndexOf(Playing.CurrentPlay);
         }
         public void ToggleLike() { } //TODO 待实现
-        public async void PlayMusic(Music music)
-        {
+        public async void PlayMusic(Music music) {
             // if no music in list, add to list
             if (Playing.PlayList.Count == 0)
                 Playing.PlayList.Add(music);
 
 
-            if (LikeSongList.Contains(music.Id))
-            {
+            if (LikeSongList.Contains(music.Id)) {
                 Playing.IsLiked = true;
             }
 
             Playing.PlayingIndex = Playing.PlayList.IndexOf(music);
             Playing.CurrentPlay = music;
             Playing.IsPlaying = true;
-            if (await SetPlayerSource(music))
-            {
+            if (await SetPlayerSource(music)) {
                 Player.Play();
             }
             else { NextMusic(); }
             //Playing.Duration = Player.NaturalDuration.TotalSeconds;
         }
 
-        private async Task<bool> SetPlayerSource(Music music)
-        {
-            if (music.LocalPath != null)
-            {
+        private async Task<bool> SetPlayerSource(Music music) {
+            if (music.LocalPath != null && music.LocalPath != "!") {
                 // play from local
                 var localMusic = await StorageFile.GetFileFromPathAsync(music.LocalPath);
                 Player.Source = MediaSource.CreateFromStorageFile(localMusic);
             }
-            else
-            {
+            else {
                 // fetch from remote
-                var res = await api.RequestAsync(CloudMusicApiProviders.SongUrlV1, new()
-                {
+                var res = await api.RequestAsync(CloudMusicApiProviders.SongUrlV1, new() {
                     ["id"] = music.Id.ToString()
                 });
 
                 var uri = res["data"][0]["url"].ToString();
-                try
-                {
+                try {
                     Player.Source = MediaSource.CreateFromUri(new Uri(uri));
                 }
-                catch
-                {
+                catch {
                     Player.Source = null;
                     RaiseSetPlayerSourceError(music);
                     return false;
@@ -527,12 +449,10 @@ namespace NCloudMusic3
 
         TeachingTip tipHost = null;
         public void SetTipHost(TeachingTip tip) => tipHost = tip;
-        public void SendTip(string Title, string Message)
-        {
+        public void SendTip(string Title, string Message) {
             if (tipHost is null) throw new ArgumentNullException(nameof(tipHost) + "未设置TipHost");
 
-            if (tipHost.IsOpen)
-            {
+            if (tipHost.IsOpen) {
                 tipHost.IsOpen = false;
             }
             tipHost.Title = Title;
@@ -541,35 +461,29 @@ namespace NCloudMusic3
             tipHost.IsOpen = true;
         }
 
-        public void RaiseSetPlayerSourceError(Music source)
-        {
+        public void RaiseSetPlayerSourceError(Music source) {
             SendTip("播放失败", $"歌曲: {source.Title} 获取url失败");
         }
 
         Frame rootFrame = null;
         public void SetFrame(Frame frame) { rootFrame = frame; }
-        public void PageNavigateBack()
-        {
-            if(rootFrame.CanGoBack)
+        public void PageNavigateBack() {
+            if (rootFrame.CanGoBack)
                 rootFrame.GoBack();
         }
-        public void PageNavigateTo(Type type, object parameter = null)
-        {
+        public void PageNavigateTo(Type type, object parameter = null) {
             if (parameter is null)
                 rootFrame.Navigate(type);
             else rootFrame.Navigate(type, parameter);
         }
 
 
-        public void NavigateToAlbum(ulong albumId)
-        {
+        public void NavigateToAlbum(ulong albumId) {
             PageNavigateTo(typeof(AlbumDetailPage), albumId);
         }
 
-        public async void GetUserinfo()
-        {
-            if (LocalSettings.Values["CookieCount"] is null)
-            {
+        public async void GetUserinfo() {
+            if (LocalSettings.Values["CookieCount"] is null) {
                 return;
             }
             var result = await api.RequestAsync(CloudMusicApiProviders.LoginStatus, null, false);
@@ -582,28 +496,24 @@ namespace NCloudMusic3
             LikeSongList.AddRange(await GetMusicList(UserProf.LikeListId));
         }
 
-        public async Task UpdateMusicLists()
-        {
-            if (UserProf.IsNotLoginUser)
-            {
+        public async Task UpdateMusicLists() {
+            if (UserProf.IsNotLoginUser) {
                 throw new Exception("User Not Logged in.");
             }
-            var queries = new Dictionary<string, object>()
-            {
+            var queries = new Dictionary<string, object>() {
                 ["uid"] = UserProf.UserId
             };
             //var likeList = await api.RequestAsync(CloudMusicApiProviders.Likelist, queries, false);
             var createdLists = await api.RequestAsync(CloudMusicApiProviders.UserPlaylist, queries, false);
 
             var (subscribedlists, createdlists) = createdLists["playlist"].Select(pl => pl.ParseMusicList())
-                .Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) =>
-                    {
-                        if (el.IsFromSubscribe)
-                            acc.Item1.Add(el);
-                        else acc.Item2.Add(el);
+                .Aggregate((new List<MusicList>(), new List<MusicList>()), (acc, el) => {
+                    if (el.IsFromSubscribe)
+                        acc.Item1.Add(el);
+                    else acc.Item2.Add(el);
 
-                        return acc;
-                    });
+                    return acc;
+                });
 
             UserProf.LikeListId = createdlists[0].Id;
 
@@ -615,18 +525,15 @@ namespace NCloudMusic3
         }
 
         // 获取歌单中的歌曲列表（优先返回缓存，并随后调用更新回调）
-        public async Task<List<ulong>> GetMusicList(ulong playlistId, Action<List<ulong>> updateCallback = null, DispatcherQueue dispatcher = null)
-        {
+        public async Task<List<ulong>> GetMusicList(ulong playlistId, Action<List<ulong>> updateCallback = null, DispatcherQueue dispatcher = null) {
             string cachename = $"{playlistId}.list";
 
             StorageFile cache;
             try { cache = await LocalCacheFolder.GetFileAsync(cachename); }
             catch { cache = null; }
 
-            if (cache != null && cache.DateCreated.AddDays(15) > DateTimeOffset.Now)
-            {
-                dispatcher?.TryEnqueue(async () =>
-                {
+            if (cache != null && cache.DateCreated.AddDays(15) > DateTimeOffset.Now) {
+                dispatcher?.TryEnqueue(async () => {
                     List<ulong> list = await GetListFromNetworkAndCache(playlistId, cachename);
 
                     updateCallback?.Invoke(list);
@@ -638,8 +545,7 @@ namespace NCloudMusic3
 
             return list;
 
-            async Task<List<ulong>> GetListFromNetworkAndCache(ulong playlistId, string cachename)
-            {
+            async Task<List<ulong>> GetListFromNetworkAndCache(ulong playlistId, string cachename) {
                 var list = (await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new() { ["id"] = playlistId.ToString() }, false))["playlist"]["trackIds"].Select(t => ((ulong)t["id"])).ToList();
                 var newf = await LocalCacheFolder.CreateFileAsync(cachename, CreationCollisionOption.ReplaceExisting);
                 await FileIO.WriteTextAsync(newf, JsonSerializer.Serialize(list));
@@ -647,11 +553,9 @@ namespace NCloudMusic3
             }
         }
 
-        public async Task<List<Music>> FetchMusicNotCached(IEnumerable<ulong> mids)
-        {
+        public async Task<List<Music>> FetchMusicNotCached(IEnumerable<ulong> mids) {
             var musicDetail = await api.RequestAsync(CloudMusicApiProviders.SongDetail,
-                    new()
-                    {
+                    new() {
                         ["ids"] = string.Join(",", mids.Select(id => id.ToString()))
                     }, false);
 
@@ -661,13 +565,10 @@ namespace NCloudMusic3
         }
 
         // 获取不在缓存中的歌曲，加入缓存。
-        public async Task PrepareMusic(IEnumerable<ulong> mids)
-        {
+        public async Task PrepareMusic(IEnumerable<ulong> mids) {
             List<ulong> toFetch = new();
-            foreach (var m in mids)
-            {
-                if (Music.TryGet(m, out var _))
-                {
+            foreach (var m in mids) {
+                if (Music.TryGet(m, out var _)) {
                 }
                 else toFetch.Add(m);
             }
@@ -676,8 +577,7 @@ namespace NCloudMusic3
                 return;
 
             var musicDetail = await api.RequestAsync(CloudMusicApiProviders.SongDetail,
-                    new()
-                    {
+                    new() {
                         ["ids"] = string.Join(",", toFetch.Select(id => id.ToString()))
                     }, false);
 
@@ -685,22 +585,18 @@ namespace NCloudMusic3
 
         }
 
-        internal async Task<MusicList> GetPlaylistInfo(ulong playlistId)
-        {
+        internal async Task<MusicList> GetPlaylistInfo(ulong playlistId) {
             if (MusicList.TryGet(playlistId, out var ls)) return ls;
 
-            var t = await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new()
-            {
+            var t = await api.RequestAsync(CloudMusicApiProviders.PlaylistDetail, new() {
                 ["id"] = playlistId.ToString(),
             });
             // TODO 查看返回值结构
             throw new NotImplementedException();
         }
 
-        internal async Task<(Album, List<Music>)> GetAlbumInfo(ulong aid)
-        {
-            var t = await api.RequestAsync(CloudMusicApiProviders.Album, new()
-            {
+        internal async Task<(Album, List<Music>)> GetAlbumInfo(ulong aid) {
+            var t = await api.RequestAsync(CloudMusicApiProviders.Album, new() {
                 ["id"] = aid.ToString(),
             });
 

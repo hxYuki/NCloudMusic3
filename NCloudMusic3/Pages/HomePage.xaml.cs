@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -21,11 +23,26 @@ using Windows.Foundation.Collections;
 
 namespace NCloudMusic3.Pages
 {
+    public partial class UserViewModel: ObservableObject {
+        [ObservableProperty]
+        private ulong userId = 0;
+
+        public RelayCommand InitCommand { get; }
+
+        public UserViewModel() {
+            InitCommand = new(() => {
+                userId = App.Instance.UserProf.UserId;
+            });
+
+            
+        }
+    }
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class HomePage : Page
     {
+        
         public HomePage()
         {
             this.InitializeComponent();
@@ -35,6 +52,7 @@ namespace NCloudMusic3.Pages
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+
 
         }
 

@@ -78,7 +78,7 @@ namespace NCloudMusic3.Controls
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            list.ItemsSource = Musics;
+            //list.ItemsSource = Musics;
             App.Instance.Player.MediaOpened += Player_MediaOpened;
         }
 
@@ -89,7 +89,7 @@ namespace NCloudMusic3.Controls
                 if (Musics.Contains(App.Instance.Playing.CurrentPlay))
                     list.SelectedItem = App.Instance.Playing.CurrentPlay;
                 
-                // TODO: ÁĞ±íÉÏÏÂÎÄ²Ëµ¥Ñ¡Ïî¼ÇÒä¡£
+                // TODO: åˆ—è¡¨ä¸Šä¸‹æ–‡èœå•é€‰é¡¹è®°å¿†ã€‚
             });
         }
 

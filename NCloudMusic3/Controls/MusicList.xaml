@@ -15,8 +15,8 @@
         <Grid.Resources>
             
         </Grid.Resources>
-        <ListView ShowsScrollingPlaceholders="True" x:Name="list" ScrollViewer.IsDeferredScrollingEnabled="True"
-                  ItemContainerStyle="{ThemeResource DefaultListViewItemStyle}"
+        <ListView x:Name="list" ScrollViewer.IsDeferredScrollingEnabled="True" ShowsScrollingPlaceholders="True"
+                  ItemContainerStyle="{ThemeResource DefaultListViewItemStyle}" ItemsSource="{x:Bind Musics}"
                   Loaded="list_Loaded">
             <ListView.Header>
                 <Grid>

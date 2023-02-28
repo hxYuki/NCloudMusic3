@@ -8,16 +8,48 @@
     xmlns:local="using:NCloudMusic3.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:model="using:NCloudMusic3.Models"
+        xmlns:triggers="using:CommunityToolkit.WinUI.UI.Triggers"
     mc:Ignorable="d"
     >
     <Page.Resources>
     </Page.Resources>
 
     <Grid >
-        <StackPanel>
-            
-            <TextBox x:Name="test" Text="123"/>
-            <Button Click="Button_Click"/>
+        <Grid.DataContext>
+            <local:UserViewModel/>
+        </Grid.DataContext>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup >
+                <VisualState x:Name="checkstate">
+                    <VisualState.StateTriggers>
+                        <!--Checkbox is null when indeterminate-->
+                        <triggers:IsEqualStateTrigger Value="{Binding IsChecked, ElementName=checkbox, Mode=OneWay}" To="{x:Null}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="checkStatus.Text" Value="Checkbox value is indeterminate" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup >
+                <VisualState x:Name="sliderstate">
+                    <VisualState.StateTriggers>
+                        <triggers:IsEqualStateTrigger Value="{Binding Value, ElementName=slider, Mode=OneWay}" To="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="sliderStatus.Text" Value="Slider value is 0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <StackPanel VerticalAlignment="Center" MaxWidth="400">
+            <TextBlock x:Name="checkStatus" Text="Checkbox value is not indeterminate" HorizontalAlignment="Center"  />
+            <CheckBox HorizontalAlignment="Left" Content="Check me" x:Name="checkbox" IsChecked="True" IsThreeState="True" />
+            <Slider x:Name="slider" Minimum="0" Maximum="5" />
+            <TextBlock x:Name="sliderStatus" Text="Slider value is not 0" />
+
+            <TextBlock Text="{Binding UserId}" />
         </StackPanel>
+
     </Grid>
 </Page>

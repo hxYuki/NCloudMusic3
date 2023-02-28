@@ -110,6 +110,7 @@ namespace NCloudMusic3.Pages
         private void libList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //(sender as ListView).SelectedIndex = 0;
+            
         }
     }
 }

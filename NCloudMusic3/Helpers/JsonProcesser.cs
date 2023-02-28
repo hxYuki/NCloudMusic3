@@ -1,4 +1,4 @@
-﻿using NCloudMusic3.Models;
+using NCloudMusic3.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -109,8 +109,8 @@ namespace NCloudMusic3.Helpers
                     u.CreateTime = DateTime.FromBinary((long)jToken["createTime"]);
 
             });
-
         }
+
         public static bool IsAvailableArray(this JToken jToken)
         {
             return jToken is not null && jToken.HasValues;

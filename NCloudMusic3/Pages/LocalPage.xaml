@@ -9,12 +9,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:NCloudMusic3.Controls"
+    xmlns:interact="using:CommunityToolkit.WinUI.UI"
+    
+    xmlns:triggers="using:CommunityToolkit.WinUI.UI.Triggers"
     xmlns:models="using:NCloudMusic3.Models"
     xmlns:h="using:NCloudMusic3.Helpers"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="Page_Loaded">
+    <Page.Resources>
 
+    </Page.Resources>
     <Grid Padding="12" DataContext="{x:Bind LocalPageData}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -23,19 +28,46 @@
         <Grid.Resources>
             <CollectionViewSource x:Name="MusicGroupSource" Source="{x:Bind Groups}" IsSourceGrouped="True" ItemsPath="Items"/>
             <DataTemplate x:Key="MusicZoomedInItemTemplate" x:DataType="models:Music">
-                <ListViewItem ToolTipService.ToolTip="{Binding LocalPath}">
-                    <StackPanel Margin="5">
-                        <TextBlock Text="{Binding Title}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNotNullNorEmpty(Title), Mode=OneWay}"
-                                   Style="{ThemeResource SubtitleTextBlockStyle}"/>
-                        <TextBlock Text="{Binding LocalPath}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNullOrEmpty(Title), Mode=OneWay}"
-                                   Style="{ThemeResource SubtitleTextBlockStyle}" Foreground="{ThemeResource CaptionTextColor}"/>
-                        <TextBlock Text="{Binding Album.Name ,FallbackValue='暂无信息',TargetNullValue='暂无专辑信息'}"
-                                   Foreground="{ThemeResource DimCaptionTextColor}"/>
-                        <TextBlock Text="{x:Bind h:XamlHelper.JoinArtists(Artists), Mode=OneWay, FallbackValue='暂无信息',TargetNullValue='暂无歌手信息'}"
-                                   Foreground="{ThemeResource DimCaptionTextColor}"/>
+                <UserControl IsHitTestVisible="False" >
+                    <ListViewItem ToolTipService.ToolTip="{Binding LocalPath}">
                         
-                    </StackPanel>
-                </ListViewItem>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup>
+                                <VisualState x:Name="Matched">
+                                    <VisualState.StateTriggers>
+                                        <triggers:IsNotEqualStateTrigger Value="{Binding Id, Mode=OneWay}" To="0"/>
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Target="panel.BorderThickness" Value="0,0,5,0"/>
+                                        <Setter Target="panel.BorderBrush" Value="#92e492"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="UnMatched">
+                                    <VisualState.StateTriggers>
+                                        <triggers:IsEqualStateTrigger Value="{Binding Id, Mode=OneWay}" To="0"/>
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Target="panel.BorderThickness" Value="0,0,0,0"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <StackPanel x:Name="panel" CornerRadius="3" Margin="0,5" Orientation="Horizontal">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNotNullNorEmpty(Title), Mode=OneWay}" MaxLines="1" TextWrapping="Wrap"
+                                       Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                                <TextBlock Text="{Binding LocalPath}" Visibility="{x:Bind h:XamlHelper.WhenStringIsNullOrEmpty(Title), Mode=OneWay}"
+                                       Style="{ThemeResource SubtitleTextBlockStyle}" Foreground="{ThemeResource CaptionTextColor}"/>
+                                <TextBlock Text="{Binding Album.Name ,FallbackValue='暂无信息',TargetNullValue='暂无专辑信息'}"
+                                       Foreground="{ThemeResource DimCaptionTextColor}"/>
+                                <TextBlock Text="{x:Bind h:XamlHelper.JoinArtists(Artists), Mode=OneWay, FallbackValue='暂无信息',TargetNullValue='暂无歌手信息'}"
+                                       Foreground="{ThemeResource DimCaptionTextColor}"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding BitRate}"/>
+                        </StackPanel>
+                    </ListViewItem>
+                </UserControl>
             </DataTemplate>
             <DataTemplate x:Key="ZoomedInHeaderTemplate" x:DataType="local:GroupInfoList">
                 <Border AutomationProperties.AccessibilityView="Raw">
@@ -54,14 +86,15 @@
                 </StackPanel>
             </Pivot.LeftHeader>
             <Pivot.RightHeader>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Click="ScanButton_Click" IsEnabled="{Binding NotScanning}">
                         <Grid>
                             <TextBlock Text="扫描" Visibility="{Binding NotScanning}"/>
                             <ProgressRing Height="5" Width="5" Visibility="{Binding IsScanning}"/>
                         </Grid>
                     </Button>
-                    <Button Content="添加文件夹"/>
+                    <Button Content="匹配信息" IsEnabled="{Binding NotScanning}" Click="MatchButton_Click"/>
+                    <Button Content="添加文件夹" IsEnabled="{Binding NotScanning}"/>
                 </StackPanel>
             </Pivot.RightHeader>
 
@@ -72,21 +105,42 @@
             <PivotItem Header="艺术家" Tag="artist"/>
             <PivotItem Header="库" Tag="library"/>
         </Pivot>
-        <SemanticZoom Grid.Row="1">
-            <SemanticZoom.ZoomedInView>
-                <ListView ItemsSource="{x:Bind MusicGroupSource.View, Mode=OneWay}"
-                                  ItemTemplate="{StaticResource MusicZoomedInItemTemplate}">
-                    <ListView.GroupStyle>
-                        <GroupStyle HeaderTemplate="{StaticResource ZoomedInHeaderTemplate}">
-                        </GroupStyle>
-                    </ListView.GroupStyle>
-                </ListView>
-            </SemanticZoom.ZoomedInView>
-            <SemanticZoom.ZoomedOutView>
-                <ListView ItemsSource="{x:Bind MusicGroupSource.View.CollectionGroups}" ItemTemplate="{StaticResource ZoomedOutItemTemplate}">
-                </ListView>
-            </SemanticZoom.ZoomedOutView>
-        </SemanticZoom>
+        <Grid Grid.Row="1" Margin="0,5,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                <Button Content="播放全部"/>
+                <Button Content="手动匹配信息"/>
+                <Button Content="清理重复歌曲" Click="HandleReplicationButton_Click"/>
+            </StackPanel>
+            <SemanticZoom Grid.Row="1">
+                <SemanticZoom.ZoomedInView>
+                    <ListView ItemsSource="{x:Bind MusicGroupSource.View, Mode=OneWay}"
+                              ItemTemplate="{StaticResource MusicZoomedInItemTemplate}">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsStackPanel  />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.GroupStyle>
+                            <GroupStyle HeaderTemplate="{StaticResource ZoomedInHeaderTemplate}">
+                                <GroupStyle.HeaderContainerStyle>
+                                    <Style TargetType="ListViewHeaderItem">
+                                        <Setter Property="Background" Value="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
+                                    </Style>
+                                </GroupStyle.HeaderContainerStyle>
+                            </GroupStyle>
+                        </ListView.GroupStyle>
+                    </ListView>
+                </SemanticZoom.ZoomedInView>
+                <SemanticZoom.ZoomedOutView>
+                    <ListView ItemsSource="{x:Bind MusicGroupSource.View.CollectionGroups}" ItemTemplate="{StaticResource ZoomedOutItemTemplate}">
+                    </ListView>
+                </SemanticZoom.ZoomedOutView>
+            </SemanticZoom>
+        </Grid>
         <StackPanel Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding IsLocalMusicEmpty}" Orientation="Horizontal"
                     HorizontalAlignment="Center" VerticalAlignment="Center" >
             <TextBlock Text="暂无音乐，" Foreground="{ThemeResource CaptionTextColor}"/>

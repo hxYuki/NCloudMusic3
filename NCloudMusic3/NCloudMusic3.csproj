@@ -17,6 +17,7 @@
     <None Remove="Controls\ArtistsListWithDivider.xaml" />
     <None Remove="Controls\EnumComboBox.xaml" />
     <None Remove="Controls\FoldableTextBlock.xaml" />
+    <None Remove="Controls\HandleReplicationDialog.xaml" />
     <None Remove="Controls\MusicList.xaml" />
     <None Remove="Pages\AlbumDetailPage.xaml" />
     <None Remove="Pages\HomePage.xaml" />
@@ -38,6 +39,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Behaviors" Version="7.1.2" />
     <PackageReference Include="DotNext" Version="4.10.0" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
@@ -62,6 +65,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCMAPI\NCMAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\HandleReplicationDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\LocalPage.xaml">
